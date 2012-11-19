@@ -1,9 +1,19 @@
 <?php
+/*
+ * 1, 每个分类在50次抓取内完成。~/
+ * 2, 乱序抓取
+ × 3，解析手工抓取的页面
+ * 4，遇到验证码停止
+ × 5，自动除去indexURL中的#号后面的内容
+ */
 require_once "lib/function.php";
 
 $class = $argv[1];              //命令行获取学科分类
 $indexURL = getIndexURL();      //首页地址
 $cookieURL = getCookieURL();    //初始化cookie，防止被识破
+
+//$indexURL = changeArticlePerPage($indexURL, 200);
+
 if(!$class || !indexURL || !cookieURL)
 {
 	echo "Usage: \$php main.php <学科分类>\nOR forgot to update the cookieURL.log/indexURL.log?";

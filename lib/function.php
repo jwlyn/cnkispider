@@ -4,6 +4,7 @@ require_once 'HttpClient.class.php';
 
 define("MIN_SLEEP_USEC", 13);
 define("MAX_SLEEP_USEC", 47);
+define("ARTICLE_PRE_PAGE", 200);
 
 function readLine($file)
 {
@@ -64,10 +65,18 @@ function save($file, $content, $mod="w+")
 	fclose($fp);
 }
 
+function changeArticlePerPage($indexURL, $count)
+{
+    $pattern = '/RecordsPerPage=(\d+)/';
+	$indexURL = preg_replace($pattern, "RecordsPerPage=$count", $indexURL);
+	return $indexURL;
+}
+
 function getPageI($url, $i)
 {
 	$pattern = "/curpage=(\d+)/";
 	$nextUrl = preg_replace($pattern, "curpage=$i", $url);
+	$nextUrl = changeArticlePerPage($nextUrl, ARTICLE_PRE_PAGE);
 	return $nextUrl;
 }
 
@@ -197,6 +206,19 @@ function main($class, $cookieURL, $indexURL) {
 	
 	/* 解析出一共有多少页面 */
 	$pageCount = parsePageCount($content);
+	//if($pageCount > 50)
+	{
+	    $articleCount = 20 * $pageCount;//计算一共有多少篇文章
+		$pageCount = $articleCount / ARTICLE_PRE_PAGE;
+		$pageCount = ceil($pageCount);//向上取整,不放过任何数据
+	}
+    
+	if($pageCount >50)
+	{
+	    echo "page count is big than 50\n";
+		exit;
+	}
+	
 	echo "total page of $class is : $pageCount\n";
 	fakeSleep();
 	/* 抓取每一个页面并且保存下来，保存的同时进行解析 */
