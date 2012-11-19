@@ -153,6 +153,26 @@ function parsePreviewURL($content)//预览地址，有目录epub.cnki.net/
 	
 	return $match[1];
 }
+
+function validatePageContent($content)
+{
+    echo "validate page content...\n";
+	$error = preg_match("/验证码/", $content);
+	$size = strlen($content)/1024;
+	if($error && $size<3)
+	{
+	    echo "有可能被发现了，请等待一会儿再开始\n";
+		echo "请检查是否遇到了验证码，然后决定输入0继续，1停止\n";
+		$stdin = fopen('php://stdin', 'r');
+		fscanf($stdin, "%d\n", $number);
+		fclose($stdin);
+		if($number==1)
+		{
+		    exit;
+		}
+	}
+}
+
 function parseContent($content, $fileName) 
 {
 	echo "parseContent...\n";
@@ -209,6 +229,7 @@ function main($class, $cookieURL, $indexURL) {
 	//if($pageCount > 50)
 	{
 	    $articleCount = 20 * $pageCount;//计算一共有多少篇文章
+		echo "total article is $articleCount\n";
 		$pageCount = $articleCount / ARTICLE_PRE_PAGE;
 		$pageCount = ceil($pageCount);//向上取整,不放过任何数据
 	}
@@ -241,3 +262,9 @@ function main($class, $cookieURL, $indexURL) {
 	}
 }
 
+function cleanIndexURL($url)
+{
+	$len = explode("#", $url);
+	$url = $len[0];
+	return $url;
+}
