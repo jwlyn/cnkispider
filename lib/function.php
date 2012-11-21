@@ -91,7 +91,6 @@ function parsePageCount($content)
 
 function parseArticleName($content)//解析文章名字
 {
-    
 	$pattern = "/ReplaceChar\('(.*?)'\)/";
 	$match = array();
 	preg_match_all($pattern, $content, $match);
@@ -159,6 +158,7 @@ function validatePageContent($content)
     echo "validate page content...\n";
 	$error = preg_match("/验证码/", $content);
 	$size = strlen($content)/1024;
+	echo "file size is $size KB\n";
 	if($error && $size<3)
 	{
 	    echo "有可能被发现了，请等待一会儿再开始\n";
@@ -175,6 +175,7 @@ function validatePageContent($content)
 
 function parseContent($content, $fileName) 
 {
+    validatePageContent($content);
 	echo "parseContent...\n";
 	/* 文章名字，作者，学位授予单位，来源数据库，学位授予年度，下载次数，预览地址 */
 	$articleName = parseArticleName($content);
@@ -228,11 +229,13 @@ function main($class, $cookieURL, $indexURL) {
 	$pageCount = parsePageCount($content);
 	//if($pageCount > 50)
 	{
-	    $articleCount = 20 * $pageCount;//计算一共有多少篇文章
+	    $articleCount = 20 * $pageCount;//计算一共有多少篇文章,大于等于实际文章书目，不影响结果
 		echo "total article is $articleCount\n";
 		$pageCount = $articleCount / ARTICLE_PRE_PAGE;
 		$pageCount = ceil($pageCount);//向上取整,不放过任何数据
 	}
+	if($pageCount==0)
+	    $pageCount = 1;
     
 	if($pageCount >50)
 	{
@@ -257,8 +260,8 @@ function main($class, $cookieURL, $indexURL) {
 		
 		$logName = "./data/$class.log";
 		parseContent($content, $logName);
-		
-		fakeSleep();//假装睡一阵子
+		if($i!=$pageCount)
+		    fakeSleep();//假装睡一阵子
 	}
 }
 
