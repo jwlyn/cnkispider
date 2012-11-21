@@ -8,19 +8,38 @@
  */
 require_once "lib/function.php";
 
-$class = $argv[1];              //命令行获取学科分类
-$indexURL = getIndexURL();      //首页地址
-$cookieURL = getCookieURL();    //初始化cookie，防止被识破
+makeDir("./data");
+makeDir("./html");
 
-$indexURL = cleanIndexURL($indexURL);
+$fpClass = fopen("./class.log", "r");
+$fpIndexURL = fopen("./indexURL.log", "r");
+$fpCookieURL = fopen("./cookieURL.log", "r");
 
-if(!$class || !indexURL || !cookieURL)
+if(!$fpClass || !$fpIndexURL || !$fpCookieURL)
 {
-	echo "Usage: \$php main.php <学科分类>\nOR forgot to update the cookieURL.log/indexURL.log?";
+	echo "fopen() error \n";
 	exit;
 }
 
-main($class, $cookieURL, $indexURL);
+while($class=getClass($fpClass))
+{
+	//$class = getClass($fpClass);              //命令行获取学科分类
+	$indexURL = getIndexURL($fpIndexURL);      //首页地址
+	$cookieURL = getCookieURL($fpCookieURL);    //初始化cookie，防止被识破
+
+	$indexURL = cleanIndexURL($indexURL);
+
+	if(!$class || !indexURL || !cookieURL)
+	{
+		echo "Usage: \$php main.php";
+		exit;
+	}
+
+	main($class, $cookieURL, $indexURL);
+	
+	echo "**********************抓取$class 成功*************************\n";
+	
+}//end while
 
 /*
 $url = "./html/基础科学-自然科学研究/1.html";
