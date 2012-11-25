@@ -22,7 +22,7 @@ require_once './lib/HttpClient.class.php';
 
 $className = array();
 $classCode = array();
-
+$cacheDir = "_";
 
 function http_get_file($url)
 {
@@ -57,13 +57,25 @@ function get_code($url)
 
 function trivalIndex($url, &$className)
 {
+	global $cacheDir;
     $pattern = '/<input type="checkbox" id="selectbox" value="(.*?)".*?name="(.*?)" .*?>/';
 	$pattern2 = '/<a.*?onclick="ClickNode\(\'(.*?)\',.*?>(.*?)<\/a>/';
 
-	$content = @file_get_contents($url);
 	$dir = get_code($url);
-	$fileName = "./index/$dir/" . get_code($url) . ".html";
-	save($fileName, $content);
+	$fileName = "./index/$cacheDir/" . get_code($url) . ".html";
+	$content = "";
+	if(file_exists($fileName))
+	{
+		echo "get file $fileName from cache\n";
+		$content = file_get_contents($fileName);
+	}
+	else
+	{
+		echo "get file $fileName from network\n";
+		$content = @file_get_contents($url);
+	    save($fileName, $content);
+	}
+	
 	$match = array();
 	$ret = preg_match_all($pattern, $content, $match);
 
@@ -72,8 +84,8 @@ function trivalIndex($url, &$className)
 		$ret = preg_match_all($pattern2, $content, $match);
 		if(!$ret)
 		{
-			echo "not found $url\n";
-			save("./index/$dir/_$dir.log", $url ."\n".$content, "a+");
+			//echo "not found $url\n";
+			save("./index/$cacheDir/{$cacheDir}.log", $url ."\n".$content."\n\n", "a+");
 			return;
 		}
 	}
@@ -83,7 +95,7 @@ function trivalIndex($url, &$className)
 	{
 		$namei = $name[$i];
 		$codei = $code[$i];
-		var_dump($codei);
+		//var_dump($codei);
 		echo "\n$namei => $codei\n";
 		addCode($namei, $codei);
 		$className[$namei] = array();
@@ -144,20 +156,22 @@ function fullFillCode($arr)
 	return $ret;
 }
 ////////////////////////////////////////////////////////////////////////////
-$urlsKey = array('A','B','C','D','E','F','G','H','I','J');
-$urlsKey = array('A');
+$urlsKey = array('A','B','C','D','E','F','G','H','I','J');//解析全部目录
+$urlsKey = array('A');//只解析A目录
 foreach($urlsKey as $key)
 {
 	mkdir("./index/$key");
+	global $cacheDir;
+	$cacheDir = $key;
 	$url = replace_code($key);
 	trivalIndex($url, $className);
 	save("./index/$key/className.log", var_export($className, true));
 	save("./index/$key/classCode.log", var_export($classCode, true));
-	$arr = findKTreeLeaf($test);
+	$arr = findKTreeLeaf($className);
 	subStr1($arr);
 	$ret = fullFillCode($arr);
 	foreach($ret as $k=>$val)
 	{
-		save("./index/$key/_$key.log", "$k $val\n", "a+");
+		save("./index/$key/_result.log", "$k $val\n");
 	}
 }
