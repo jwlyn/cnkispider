@@ -1,24 +1,6 @@
 <?php
-/*
- $class = array(
- '基础科学'=>array(
-     '生物'=>array(),
-	 '物理'=>array(),
-	 '农业'=>array(),
-	 
- ),
- '太空科技'=>array(),
- 
- );
- 
- $code = array(
- '基础科学'=>'A',
- '生物'=>'A1',
- '物理'=>'A2'
- );
- */
 require_once "./lib/function.php";
-require_once './lib/HttpClient.class.php';
+//require_once './lib/HttpClient.class.php';
 
 $className = array();
 $classCode = array();
@@ -58,8 +40,8 @@ function get_code($url)
 function trivalIndex($url, &$className)
 {
 	global $cacheDir;
-    $pattern = '/<input type="checkbox" id="selectbox" value="(.*?)".*?name="(.*?)" .*?>/';
-	$pattern2 = '/<a.*?onclick="ClickNode\(\'(.*?)\',.*?>(.*?)<\/a>/';
+    $pattern2 = '/<input type="checkbox" id="selectbox" value="(.*?)".*?name="(.*?)" .*?>/';
+	$pattern = '/<a.*?onclick="ClickNode\(\'(.*?)\',.*?>(.*?)<\/a>/';
 
 	$dir = get_code($url);
 	$fileName = "./index/$cacheDir/" . get_code($url) . ".html";
@@ -71,7 +53,8 @@ function trivalIndex($url, &$className)
 	}
 	else
 	{
-		echo "get file $fileName from network\n";
+		echo "get file $fileName from network $url\n";
+		
 		$content = @file_get_contents($url);
 	    save($fileName, $content);
 	}
@@ -82,6 +65,7 @@ function trivalIndex($url, &$className)
 	if(!$ret)/* 没有找到这个目录 */
 	{
 		$ret = preg_match_all($pattern2, $content, $match);
+		echo "[WARNNING] use pattern 2\n $content\n";
 		if(!$ret)
 		{
 			//echo "not found $url\n";
@@ -104,7 +88,6 @@ function trivalIndex($url, &$className)
 		trivalIndex($url, $className[$namei]);
 		sleep(4);
 	}
-	
 }
 
 //返回一个array('xxx-yy-cc','aa-bb-cc')
@@ -156,22 +139,25 @@ function fullFillCode($arr)
 	return $ret;
 }
 ////////////////////////////////////////////////////////////////////////////
-$urlsKey = array('A','B','C','D','E','F','G','H','I','J');//解析全部目录
-$urlsKey = array('A');//只解析A目录
-foreach($urlsKey as $key)
+$urlsKey = array('A'=>'基础科学','B'=>'工程科技Ⅰ辑','C'=>'工程科技Ⅱ辑','D'=>'农业科技','E'=>'医药卫生科技','F'=>'哲学与人文科学','G'=>'社会科学Ⅰ辑','H'=>'社会科学Ⅱ辑','I'=>'信息科技','J'=>'经济与管理科学');//解析全部目录
+$urlsKey = array('A'=>'基础科学');//只解析A目录
+foreach($urlsKey as $key=>$value)
 {
+	global $className;
+	$className[$value] = array();
 	mkdir("./index/$key");
 	global $cacheDir;
 	$cacheDir = $key;
 	$url = replace_code($key);
-	trivalIndex($url, $className);
+	trivalIndex($url, $className[$value]);
 	save("./index/$key/className.log", var_export($className, true));
 	save("./index/$key/classCode.log", var_export($classCode, true));
+
 	$arr = findKTreeLeaf($className);
 	subStr1($arr);
 	$ret = fullFillCode($arr);
 	foreach($ret as $k=>$val)
 	{
-		save("./index/$key/_result.log", "$k $val\n");
+		save("./index/$key/_result.log", "$k $val\n", "a+");
 	}
 }
