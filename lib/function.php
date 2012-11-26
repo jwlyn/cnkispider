@@ -274,16 +274,25 @@ function main($class, $cookieURL, $indexURL) {
 		echo "begin to get page $i of $pageCount...\n";
 		$pageI = getPageI($indexURL, $i);//第i页的地址
 		$htmlI = "./html/$class/$i.html";
-		$httpClient->setCookies($cookies);
-		$httpClient->get($pageI);
-		$content = $httpClient->getContent();
-		save($htmlI, $content);
-		echo "saved file $htmlI \n";
 		
+		if(!file_exists($htmlI))
+		{
+			$httpClient->setCookies($cookies);
+			$httpClient->get($pageI);
+			$content = $httpClient->getContent();
+			save($htmlI, $content);
+			echo "get file from newwork & saved file $htmlI \n";
+		}
+		else
+		{
+			echo "get file $htmlI from cache\n";
+			$content = file_get_contents($htmlIs);
+		}
+
 		$logName = "./data/$class.log";
 		parseContent($content, $logName);
 		if($i!=$pageCount)
-		fakeSleep();//假装睡一阵子
+			fakeSleep();//睡一阵子
 	}
 }
 

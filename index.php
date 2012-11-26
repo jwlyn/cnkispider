@@ -53,7 +53,7 @@ function trivalIndex($url, &$className)
 	}
 	else
 	{
-		echo "get file $fileName from network $url\n";
+		echo "get file $fileName from network\n";
 		
 		$content = @file_get_contents($url);
 	    save($fileName, $content);
@@ -140,6 +140,7 @@ function fullFillCode($arr)
 }
 ////////////////////////////////////////////////////////////////////////////
 $urlsKey = array('A'=>'基础科学','B'=>'工程科技Ⅰ辑','C'=>'工程科技Ⅱ辑','D'=>'农业科技','E'=>'医药卫生科技','F'=>'哲学与人文科学','G'=>'社会科学Ⅰ辑','H'=>'社会科学Ⅱ辑','I'=>'信息科技','J'=>'经济与管理科学');//解析全部目录
+
 $urlsKey = array('A'=>'基础科学');//只解析A目录
 foreach($urlsKey as $key=>$value)
 {
