@@ -141,7 +141,14 @@ function fullFillCode($arr)
 ////////////////////////////////////////////////////////////////////////////
 $urlsKey = array('A'=>'基础科学','B'=>'工程科技Ⅰ辑','C'=>'工程科技Ⅱ辑','D'=>'农业科技','E'=>'医药卫生科技','F'=>'哲学与人文科学','G'=>'社会科学Ⅰ辑','H'=>'社会科学Ⅱ辑','I'=>'信息科技','J'=>'经济与管理科学');//解析全部目录
 
-$urlsKey = array('A'=>'基础科学');//只解析A目录
+//$urlsKey = array('A'=>'基础科学');//只解析A目录
+$key = $argv[1];
+if(!$key)
+{
+	echo "usage \$php index.php 'A', 'B' ...\n";
+	exit;
+}
+$urlsKey = array($key=>$urlsKey[$key]);
 foreach($urlsKey as $key=>$value)
 {
 	global $className;

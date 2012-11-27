@@ -33,7 +33,8 @@ while($line=readLine($fp))
 	$code = getClassCode($line);
 	$indexURL = getIndexURL($code);       //首页地址
 	$cookieURL = getCookieURL($code);    //初始化cookie，防止被识破
-
+    echo $indexURL ."\n";
+	echo $cookieURL ."\n";
 	$indexURL = cleanIndexURL($indexURL);
 
 	if(!$className || !$indexURL || !$cookieURL)
