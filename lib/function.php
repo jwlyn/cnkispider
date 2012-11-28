@@ -262,7 +262,7 @@ function main($class, $cookieURL, $indexURL) {
 	if($pageCount >50)
 	{
 		echo "page count is big than 50\n";
-		exit;
+		
 	}
 	
 	echo "total page of $class is : $pageCount\n";
