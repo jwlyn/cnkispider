@@ -166,6 +166,6 @@ foreach($urlsKey as $key=>$value)
 	$ret = fullFillCode($arr);
 	foreach($ret as $k=>$val)
 	{
-		save("./index/$key/_result.log", "$k $val\n", "a+");
+		save("./index/$key/_result_$key.log", "$k $val\n", "a+");
 	}
 }
