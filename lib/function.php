@@ -35,7 +35,13 @@ function getCookieURL($code)
 {
 	$url = "http://epub.cnki.net/KNS/request/SearchHandler.ashx?action=&NaviCode=A001_4&ua=1.25&PageName=ASP.brief_result_aspx&DbPrefix=CDMD&DbCatalog=%E4%B8%AD%E5%9B%BD%E4%BC%98%E7%A7%80%E5%8D%9A%E7%A1%95%E5%A3%AB%E5%AD%A6%E4%BD%8D%E8%AE%BA%E6%96%87%E5%85%A8%E6%96%87%E6%95%B0%E6%8D%AE%E5%BA%93&ConfigFile=CDMD.xml&db_opt=%u4E2D%u56FD%u4F18%u79C0%u535A%u7855%u58EB%u5B66%u4F4D%u8BBA%u6587%u5168%u6587%u6570%u636E%u5E93&db_value=%u4E2D%u56FD%u535A%u58EB%u5B66%u4F4D%u8BBA%u6587%u5168%u6587%u6570%u636E%u5E93%2C%u4E2D%u56FD%u4F18%u79C0%u7855%u58EB%u5B66%u4F4D%u8BBA%u6587%u5168%u6587%u6570%u636E%u5E93&year_from=1980&his=0&__=Mon%20Nov%2026%202012%2023%3A14%3A44%20GMT%2B0800%20(%E4%B8%AD%E5%9B%BD%E6%A0%87%E5%87%86%E6%97%B6%E9%97%B4)";
 	
-	$url = preg_replace("/NaviCode=(.*?)&/", "NaviCode=$code&", $url);
+	if(!$code || strlen(trim($code))!=0)
+	    $url = preg_replace("/NaviCode=(.*?)&/", "NaviCode=$code&", $url);
+    else
+	{
+		echo "code is Empty\n";
+		exit;
+	}
 	return $url;
 }
 
@@ -177,12 +183,13 @@ function parsePreviewURL($content)//预览地址，有目录epub.cnki.net/
 
 function validatePageContent($content)
 {
-	echo "validate page content...\n";
+	echo "validate page content, ";
 	$error = preg_match("/验证码/", $content);
 	$size = strlen($content)/1024;
-	echo "file size is $size KB\n";
+	echo "size: $size(KB).";
 	if($error && $size<3)
 	{
+		echo "BAD \n";
 		echo "有可能被发现了，请等待一会儿再开始\n";
 		echo "请检查是否遇到了验证码，然后决定输入0继续，1停止\n";
 		$stdin = fopen('php://stdin', 'r');
@@ -193,12 +200,14 @@ function validatePageContent($content)
 			exit;
 		}
 	}
+	else
+	   echo "...OK\n";
 }
 
 function parseContent($content, $fileName) 
 {
 	validatePageContent($content);
-	echo "parseContent...\n";
+	echo "parseContent.......";
 	/* 文章名字，作者，学位授予单位，来源数据库，学位授予年度，下载次数，预览地址 */
 	$articleName = parseArticleName($content);
 	$authors = parseAuthor($content);
@@ -214,12 +223,11 @@ function parseContent($content, $fileName)
 	{
 		$item = "{$articleName[$i]} {$authors[$i]} {$schools[$i]} {$origin[$i]} {$years[$i]} {$downCount[$i]} {$previewPage[$i]}";
 		$saveContent .= "$item\n";
-		
 	}
 	
 	save($fileName, $saveContent, "a+");
 	
-	echo "parseContent done!\n";
+	echo "Done!\n";
 }
 
 function fakeSleep()
@@ -232,26 +240,39 @@ function fakeSleep()
 
 function main($class, $cookieURL, $indexURL) {
 
+	$isSleep = true;
 	makeDir("./html/$class/");
 	$dataFileName = "data/$class.log";
-	
+
 	$httpClient = new HttpClient("epub.cnki.net");
-	//$httpClient->setDebug(true);
 
 	$httpClient->get($cookieURL);
 	$cookies = $httpClient->getCookies();
 	$httpClient->setCookies($cookies);
 	
-	$httpClient->get($indexURL);
-	$content = $httpClient->getContent();
-	save("./html/$class/index.html", $content);//保存
-	echo "save index file...\n";
+	$content = "";
+	$indexFname = "./html/$class/index.html";
+	
+	if(file_exists(iconv("utf-8","gb2312", $indexFname)))
+	{
+		$isSleep = false;
+		$content = file_get_contents(iconv("utf-8","gb2312", $indexFname));
+		echo "From cache get index.....\n";
+	}
+	else
+	{
+		$isSleep = true;
+		$httpClient->get($indexURL);
+		$content = $httpClient->getContent();
+		save($indexFname, $content);//保存
+		echo "save index file...\n";
+	}
 	
 	/* 解析出一共有多少页面 */
 	$pageCount = parsePageCount($content);
 	//if($pageCount > 50)
 	{
-		$articleCount = 20 * $pageCount;//计算一共有多少篇文章,大于等于实际文章书目，不影响结果
+		$articleCount = 20 * $pageCount;//计算一共有多少篇文章,大于等于实际文章数目，不影响结果
 		echo "total article is $articleCount\n";
 		$pageCount = $articleCount / ARTICLE_PRE_PAGE;
 		$pageCount = ceil($pageCount);//向上取整,不放过任何数据
@@ -262,37 +283,51 @@ function main($class, $cookieURL, $indexURL) {
 	if($pageCount >50)
 	{
 		echo "page count is big than 50\n";
-		
 	}
 	
 	echo "total page of $class is : $pageCount\n";
-	fakeSleep();
+	if($isSleep)
+	{
+		fakeSleep();
+	}
+	
 	/* 抓取每一个页面并且保存下来，保存的同时进行解析 */
 	for($i=1; $i<=$pageCount; $i++)
 	{
 		$content = NULL;
-		echo "begin to get page $i of $pageCount...\n";
 		$pageI = getPageI($indexURL, $i);//第i页的地址
 		$htmlI = "./html/$class/$i.html";
 		
-		if(!file_exists($htmlI))
+		if(!file_exists(iconv("utf-8","gb2312", $htmlI)))
 		{
+			$isSleep = true;
 			$httpClient->setCookies($cookies);
 			$httpClient->get($pageI);
 			$content = $httpClient->getContent();
 			save($htmlI, $content);
-			echo "get file from newwork & saved file $htmlI \n";
+			echo "From newwork & save $i.html..........[$i of $pageCount]\n";
 		}
 		else
 		{
-			echo "get file $htmlI from cache\n";
-			$content = file_get_contents($htmlIs);
+			$isSleep = false;
+			echo "Find local file $htmlI & skip\n";
+			continue;
+			//$content = file_get_contents($htmlIs);
 		}
 
 		$logName = "./data/$class.log";
 		parseContent($content, $logName);
-		if($i!=$pageCount)
+		if($i!=$pageCount && $isSleep)
 			fakeSleep();//睡一阵子
+		else
+		{
+			echo "+\n";
+			echo "+\n";
+			echo "+ $class done\n";
+			echo "+\n";
+			echo "+\n";
+
+		}
 	}
 }
 
