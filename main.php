@@ -2,7 +2,7 @@
 /*
  * 1, 每个分类在50次抓取内完成................~/
  * 2, 乱序抓取
- × 3，解析手工抓取的页面
+ × 3，解析手工抓取的页面......................~/
  * 4，遇到验证码停止..........................~/
  × 5，自动除去indexURL中的#号后面的内容.......~/
  */
@@ -18,7 +18,7 @@ if(!$class)
 	exit;
 }
 
-$indexFileName = "./index/$class/_result.log";
+$indexFileName = "./index/$class/_result_$class.log";
 if(!file_exists($indexFileName))
 {
 	echo "file $indexFileName not exists \n";
@@ -33,8 +33,7 @@ while($line=readLine($fp))
 	$code = getClassCode($line);
 	$indexURL = getIndexURL($code);       //首页地址
 	$cookieURL = getCookieURL($code);    //初始化cookie，防止被识破
-    echo $indexURL ."\n";
-	echo $cookieURL ."\n";
+
 	$indexURL = cleanIndexURL($indexURL);
 
 	if(!$className || !$indexURL || !$cookieURL)
@@ -44,7 +43,10 @@ while($line=readLine($fp))
 	}
 
 	main($className, $cookieURL, $indexURL);
-	
-	echo "**********************抓取$class 成功*************************\n";
+    echo "+\n";
+	echo "+\n";
+	echo "+抓取$className 成功 ^_^\n";
+	echo "+\n";
+	echo "+\n";
 	
 }//end while
