@@ -242,11 +242,11 @@ function fakeSleep()
 	echo "wake up now!\n";
 }
 
-function main($class, $cookieURL, $indexURL) {
+function main($subDir, $class, $cookieURL, $indexURL) {
 
 	$isSleep = true;
-	makeDir("./html/$class/");
-	$dataFileName = "data/$class.log";
+	makeDir("./html/$subDir/$class/");
+	$dataFileName = "data/$subDir/$class.log";
 
 	$httpClient = new HttpClient("epub.cnki.net");
 
@@ -255,7 +255,7 @@ function main($class, $cookieURL, $indexURL) {
 	$httpClient->setCookies($cookies);
 	
 	$content = "";
-	$indexFname = "./html/$class/index.html";
+	$indexFname = "./html/$subDir/$class/index.html";
 	
 	if(file_exists(iconv("utf-8","gb2312", $indexFname)))
 	{
@@ -300,7 +300,7 @@ function main($class, $cookieURL, $indexURL) {
 	{
 		$content = NULL;
 		$pageI = getPageI($indexURL, $i);//第i页的地址
-		$htmlI = "./html/$class/$i.html";
+		$htmlI = "./html/$subDir/$class/$i.html";
 		
 		if(!file_exists(iconv("utf-8","gb2312", $htmlI)))
 		{
@@ -319,7 +319,7 @@ function main($class, $cookieURL, $indexURL) {
 			//$content = file_get_contents($htmlIs);
 		}
 
-		$logName = "./data/$class.log";
+		$logName = "./data/$subDir/$class.log";
 		parseContent($content, $logName);
 		if($i!=$pageCount && $isSleep)
 			fakeSleep();//睡一阵子
@@ -341,7 +341,7 @@ function cleanIndexURL($url)
 	$url = $len[0];
 	return $url;
 }
-
+/*
 function textFlash($str)
 {
 	$ums = 300000;
@@ -352,3 +352,4 @@ function textFlash($str)
 		usleep($ums);
 	}
 }
+*/

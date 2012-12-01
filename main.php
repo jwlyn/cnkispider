@@ -42,7 +42,7 @@ while($line=readLine($fp))
 		exit;
 	}
 
-	main($className, $cookieURL, $indexURL);
+	main($class, $className, $cookieURL, $indexURL);
     echo "+\n";
 	echo "+\n";
 	echo "+抓取$className 成功 ^_^\n";
