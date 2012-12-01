@@ -2,8 +2,8 @@
 
 require_once 'HttpClient.class.php';
 
-define("MIN_SLEEP_USEC", 13);
-define("MAX_SLEEP_USEC", 47);
+define("MIN_SLEEP_USEC", 5);
+define("MAX_SLEEP_USEC", 15);
 define("ARTICLE_PRE_PAGE", 200);
 
 function readLine($fp)
@@ -233,8 +233,12 @@ function parseContent($content, $fileName)
 function fakeSleep()
 {
 	$ms = rand(MIN_SLEEP_USEC, MAX_SLEEP_USEC);
-	echo "sleep $ms seconds...";
-	sleep($ms);
+	echo "sleep $ms seconds";
+	for($i=0; $i<$ms; $i++)
+	{
+		echo ".";
+		sleep(1);
+	}
 	echo "wake up now!\n";
 }
 
@@ -336,4 +340,15 @@ function cleanIndexURL($url)
 	$len = explode("#", $url);
 	$url = $len[0];
 	return $url;
+}
+
+function textFlash($str)
+{
+	$ums = 300000;
+	$len = strlen($str);
+	for($i=0; $i<$len; $i++)
+	{
+		echo $str[$i];
+		usleep($ums);
+	}
 }
