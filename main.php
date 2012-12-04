@@ -12,6 +12,11 @@ makeDir("./data");
 makeDir("./html");
 
 $class = $argv[1];
+if(!file_exists("./data/$class"))
+	makeDir("./data/$class");
+if(!file_exists("./html/$class"))
+	makeDir("./html/$class");
+
 if(!$class)
 {
 	echo "you have to specify a directory: 'A', 'B', 'C' ...\n";
@@ -19,6 +24,8 @@ if(!$class)
 }
 
 $indexFileName = "./index/$class/_result_$class.log";
+$totalClass= getTotalClass($indexFileName);
+$curClass = 1;
 if(!file_exists($indexFileName))
 {
 	echo "file $indexFileName not exists \n";
@@ -42,7 +49,7 @@ while($line=readLine($fp))
 		exit;
 	}
 
-	main($class, $className, $cookieURL, $indexURL);
+	main($class, $className, $cookieURL, $indexURL, $totalClass, $curClass++);
     echo "+\n";
 	echo "+\n";
 	echo "+抓取$className 成功 ^_^\n";

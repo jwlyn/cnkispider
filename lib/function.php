@@ -189,8 +189,8 @@ function validatePageContent($content)
 	echo "size: $size(KB).";
 	if($error && $size<3)
 	{
-		echo "BAD \n";
-		echo "有可能被发现了，请等待一会儿再开始\n";
+		echo "有可能被发现了，尝试重新连接\n";
+		/*
 		echo "请检查是否遇到了验证码，然后决定输入0继续，1停止\n";
 		$stdin = fopen('php://stdin', 'r');
 		fscanf($stdin, "%d\n", $number);
@@ -199,14 +199,18 @@ function validatePageContent($content)
 		{
 			exit;
 		}
+		*/
+		return false;
 	}
 	else
-	   echo "...OK\n";
+	{
+		echo "...OK\n";
+		return true;
+	}
 }
 
 function parseContent($content, $fileName) 
 {
-	validatePageContent($content);
 	echo "parseContent.......";
 	/* 文章名字，作者，学位授予单位，来源数据库，学位授予年度，下载次数，预览地址 */
 	$articleName = parseArticleName($content);
@@ -242,7 +246,7 @@ function fakeSleep()
 	echo "wake up now!\n";
 }
 
-function main($subDir, $class, $cookieURL, $indexURL) {
+function main($subDir, $class, $cookieURL, $indexURL, $totalClass, $curClass) {
 
 	$isSleep = true;
 	makeDir("./html/$subDir/$class/");
@@ -274,13 +278,12 @@ function main($subDir, $class, $cookieURL, $indexURL) {
 	
 	/* 解析出一共有多少页面 */
 	$pageCount = parsePageCount($content);
-	//if($pageCount > 50)
-	{
-		$articleCount = 20 * $pageCount;//计算一共有多少篇文章,大于等于实际文章数目，不影响结果
-		echo "total article is $articleCount\n";
-		$pageCount = $articleCount / ARTICLE_PRE_PAGE;
-		$pageCount = ceil($pageCount);//向上取整,不放过任何数据
-	}
+
+	$articleCount = 20 * $pageCount;//计算一共有多少篇文章,大于等于实际文章数目，不影响结果
+	echo "total article is $articleCount\n";
+	$pageCount = $articleCount / ARTICLE_PRE_PAGE;
+	$pageCount = ceil($pageCount);//向上取整,不放过任何数据
+		
 	if($pageCount==0)
 	$pageCount = 1;
 	
@@ -289,7 +292,7 @@ function main($subDir, $class, $cookieURL, $indexURL) {
 		echo "page count is big than 50\n";
 	}
 	
-	echo "total page of $class is : $pageCount\n";
+	echo "total page of $class is : $pageCount...............$curClass of $totalClass\n";
 	if($isSleep)
 	{
 		fakeSleep();
@@ -311,15 +314,31 @@ function main($subDir, $class, $cookieURL, $indexURL) {
 			save($htmlI, $content);
 			echo "From newwork & save $i.html..........[$i of $pageCount]\n";
 		}
-		else
+		else//本地文件是存在的
 		{
-			$isSleep = false;
-			echo "Find local file $htmlI & skip\n";
+			$content = file_get_contents(iconv("utf-8","gb2312", $htmlI));
+			$ok = validatePageContent($content); //是否出现了验证码
+			if(!$ok)//是个验证码页
+			{
+				$i = $i-1;
+				delFile(iconv("utf-8","gb2312", $htmlI));
+				dosleep(60*2);
+			}
+			else//正常的页面
+			{
+				$isSleep = false;
+				echo "Find local file $htmlI & skip\n";
+			}
 			continue;
-			//$content = file_get_contents($htmlIs);
 		}
 
 		$logName = "./data/$subDir/$class.log";
+		if(!validatePageContent($content))
+		{
+			$i = $i-1;;
+			dosleep(130);
+			continue;
+		}
 		parseContent($content, $logName);
 		if($i!=$pageCount && $isSleep)
 			fakeSleep();//睡一阵子
@@ -353,3 +372,37 @@ function textFlash($str)
 	}
 }
 */
+
+function getTotalClass($fname)
+{
+	$fname = iconv("utf-8","gb2312", $fname);
+	$fp = fopen($fname, "r");
+	$line = 0;
+	while(fgets($fp)) $line++;
+	fclose($fp);
+
+	return $line;
+}
+
+function dosleep($seconds)
+{
+	echo "Sleep $seconds seconds";
+	for($i=0; $i<$seconds; $i++)
+	{
+		echo ".";
+		sleep(1);
+	}
+	echo "wake up!\n";
+}
+
+function delFile($fileName)
+{
+	if(unlink($fileName))
+	{
+		echo "Delete file $fileName success!\n";
+	}
+	else
+	{
+		echo "Delete file $fileName failure!";
+	}
+}
