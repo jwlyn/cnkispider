@@ -187,7 +187,7 @@ function validatePageContent($content)
 	$error = preg_match("/验证码/", $content);
 	$size = strlen($content)/1024;
 	echo "size: $size(KB).";
-	if($error && $size<3)
+	if($size<3)
 	{
 		echo "有可能被发现了，尝试重新连接\n";
 		/*
@@ -321,7 +321,7 @@ function main($subDir, $class, $cookieURL, $indexURL, $totalClass, $curClass) {
 			if(!$ok)//是个验证码页
 			{
 				$i = $i-1;
-				delFile(iconv("utf-8","gb2312", $htmlI));
+				delFile($htmlI);
 				dosleep(60*2);
 			}
 			else//正常的页面
@@ -335,7 +335,7 @@ function main($subDir, $class, $cookieURL, $indexURL, $totalClass, $curClass) {
 		$logName = "./data/$subDir/$class.log";
 		if(!validatePageContent($content))
 		{
-			$i = $i-1;;
+			$i = $i-1;
 			dosleep(130);
 			continue;
 		}
@@ -397,7 +397,8 @@ function dosleep($seconds)
 
 function delFile($fileName)
 {
-	if(unlink($fileName))
+	$file = iconv("utf-8","gb2312", $fileName);
+	if(unlink($file))
 	{
 		echo "Delete file $fileName success!\n";
 	}
