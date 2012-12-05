@@ -322,7 +322,7 @@ function main($subDir, $class, $cookieURL, $indexURL, $totalClass, $curClass) {
 			{
 				$i = $i-1;
 				delFile($htmlI);
-				dosleep(60*2);
+				dosleep(60*5);
 			}
 			else//正常的页面
 			{
@@ -336,7 +336,7 @@ function main($subDir, $class, $cookieURL, $indexURL, $totalClass, $curClass) {
 		if(!validatePageContent($content))
 		{
 			$i = $i-1;
-			dosleep(130);
+			dosleep(60*5);
 			continue;
 		}
 		parseContent($content, $logName);
