@@ -2,8 +2,8 @@
 
 require_once 'HttpClient.class.php';
 
-define("MIN_SLEEP_USEC", 5);
-define("MAX_SLEEP_USEC", 15);
+define("MIN_SLEEP_USEC", 15);
+define("MAX_SLEEP_USEC", 40);
 define("ARTICLE_PRE_PAGE", 200);
 
 function readLine($fp)
@@ -229,6 +229,11 @@ function parseContent($content, $fileName)
 		$saveContent .= "$item\n";
 	}
 	
+	if($len==0)
+	{
+		echo "Done... but get nothing form $content\n";
+		return;
+	}	
 	save($fileName, $saveContent, "a+");
 	
 	echo "Done!\n";
@@ -322,7 +327,6 @@ function main($subDir, $class, $cookieURL, $indexURL, $totalClass, $curClass) {
 			{
 				$i = $i-1;
 				delFile($htmlI);
-				dosleep(60*5);
 			}
 			else//正常的页面
 			{
@@ -336,7 +340,10 @@ function main($subDir, $class, $cookieURL, $indexURL, $totalClass, $curClass) {
 		if(!validatePageContent($content))
 		{
 			$i = $i-1;
-			dosleep(60*5);
+			dosleep(60*3);
+			$httpClient->get($cookieURL);
+			$cookies = $httpClient->getCookies();
+			$httpClient->setCookies($cookies);
 			continue;
 		}
 		parseContent($content, $logName);
