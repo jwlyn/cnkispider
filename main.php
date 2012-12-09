@@ -38,6 +38,11 @@ while($line=readLine($fp))
 {
 	$className = getClassName($line);
 	$code = getClassCode($line);
+	if(!$code ||!$className)
+	{
+		echo "$className code empty\n";
+		continue;
+	}
 	$indexURL = getIndexURL($code);       //首页地址
 	$cookieURL = getCookieURL($code);    //初始化cookie，防止被识破
 

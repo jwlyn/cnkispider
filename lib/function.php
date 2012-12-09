@@ -2,8 +2,8 @@
 
 require_once 'HttpClient.class.php';
 
-define("MIN_SLEEP_USEC", 15);
-define("MAX_SLEEP_USEC", 40);
+define("MIN_SLEEP_USEC", 2);
+define("MAX_SLEEP_USEC", 4);
 define("ARTICLE_PRE_PAGE", 200);
 
 function readLine($fp)
@@ -22,6 +22,10 @@ function getClassName($line)
 function getClassCode($line)
 {
 	$arr = explode(" ", $line);
+	if(count($arr)!=2)
+	{
+		return null;
+	}
 	return $arr[1];
 }
 /*
@@ -275,6 +279,7 @@ function main($subDir, $class, $cookieURL, $indexURL, $totalClass, $curClass) {
 	else
 	{
 		$isSleep = true;
+		
 		$httpClient->get($indexURL);
 		$content = $httpClient->getContent();
 		save($indexFname, $content);//保存
@@ -340,7 +345,8 @@ function main($subDir, $class, $cookieURL, $indexURL, $totalClass, $curClass) {
 		if(!validatePageContent($content))
 		{
 			$i = $i-1;
-			dosleep(60*3);
+			dosleep(60);
+			$httpClient = new HttpClient("epub.cnki.net");
 			$httpClient->get($cookieURL);
 			$cookies = $httpClient->getCookies();
 			$httpClient->setCookies($cookies);
