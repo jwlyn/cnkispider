@@ -229,7 +229,7 @@ function parseContent($content, $fileName)
 	$len = count($articleName);
 	for($i=0; $i<$len; $i++)
 	{
-		$item = "{$articleName[$i]} {$authors[$i]} {$schools[$i]} {$origin[$i]} {$years[$i]} {$downCount[$i]} {$previewPage[$i]}";
+		$item = "{$articleName[$i]}\t{$authors[$i]}\t{$schools[$i]}\t{$origin[$i]}\t{$years[$i]}\t{$downCount[$i]}\t{$previewPage[$i]}";
 		$saveContent .= "$item\n";
 	}
 	
@@ -338,7 +338,7 @@ function main($subDir, $class, $cookieURL, $indexURL, $totalClass, $curClass) {
 				$isSleep = false;
 				echo "Find local file $htmlI & skip\n";
 			}
-			continue;
+			//continue;
 		}
 
 		$logName = "./data/$subDir/$class.log";
