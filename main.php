@@ -45,9 +45,11 @@ while($line=readLine($fp))
 	}
 	$indexURL = getIndexURL($code);       //首页地址
 	$cookieURL = getCookieURL($code);    //初始化cookie，防止被识破
+	
 
 	$indexURL = cleanIndexURL($indexURL);
 
+	//exit;
 	if(!$className || !$indexURL || !$cookieURL)
 	{
 		echo "Usage: \$php main.php";

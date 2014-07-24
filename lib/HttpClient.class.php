@@ -113,6 +113,7 @@ class HttpClient {
     	// Now start reading back the response
     	while (!feof($fp)) {
     	    $line = fgets($fp, 4096);
+			//echo "****$line\n";
     	    if ($atStart) {
     	        // Deal with first line of returned data
     	        $atStart = false;
@@ -127,7 +128,9 @@ class HttpClient {
     	        $this->debug(trim($line));
     	        continue;
     	    }
+			
     	    if ($inHeaders) {
+				//echo "$line\n";
     	        if (trim($line) == '') {
     	            $inHeaders = false;
     	            $this->debug('Received Headers', $this->headers);
@@ -136,12 +139,15 @@ class HttpClient {
     	            }
     	            continue;
     	        }
+				//echo "$line\n";
     	        if (!preg_match('/([^:]+):\\s*(.*)/', $line, $m)) {
     	            // Skip to the next header
+					//echo "skip $line\n";
     	            continue;
     	        }
     	        $key = strtolower(trim($m[1]));
     	        $val = trim($m[2]);
+				//echo "$key  ->  $val\n";
     	        // Deal with the possibility of multiple headers of same name
     	        if (isset($this->headers[$key])) {
     	            if (is_array($this->headers[$key])) {
@@ -168,7 +174,9 @@ class HttpClient {
 		//echo "$this->host , $this->cookie_host\n";
         //$s = ($this->host == $this->cookie_host);
 		//echo "$s\n";
+		
         if ($this->persist_cookies && isset($this->headers['set-cookie']) /*&& $this->host == $this->cookie_host*/) {
+			
             $cookies = $this->headers['set-cookie'];
             if (!is_array($cookies)) {
                 $cookies = array($cookies);
@@ -182,6 +190,7 @@ class HttpClient {
             }
             // Record domain of cookies for security reasons
             $this->cookie_host = $this->host;
+
         }
         // If $persist_referers, set the referer ready for the next request
         if ($this->persist_referers) {

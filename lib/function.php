@@ -37,7 +37,7 @@ function getClass($fp)
 */
 function getCookieURL($code)
 {
-	$url = "http://epub.cnki.net/KNS/request/SearchHandler.ashx?action=&NaviCode=A001_4&ua=1.25&PageName=ASP.brief_result_aspx&DbPrefix=CDMD&DbCatalog=%E4%B8%AD%E5%9B%BD%E4%BC%98%E7%A7%80%E5%8D%9A%E7%A1%95%E5%A3%AB%E5%AD%A6%E4%BD%8D%E8%AE%BA%E6%96%87%E5%85%A8%E6%96%87%E6%95%B0%E6%8D%AE%E5%BA%93&ConfigFile=CDMD.xml&db_opt=%u4E2D%u56FD%u4F18%u79C0%u535A%u7855%u58EB%u5B66%u4F4D%u8BBA%u6587%u5168%u6587%u6570%u636E%u5E93&db_value=%u4E2D%u56FD%u535A%u58EB%u5B66%u4F4D%u8BBA%u6587%u5168%u6587%u6570%u636E%u5E93%2C%u4E2D%u56FD%u4F18%u79C0%u7855%u58EB%u5B66%u4F4D%u8BBA%u6587%u5168%u6587%u6570%u636E%u5E93&year_from=1980&his=0&__=Mon%20Nov%2026%202012%2023%3A14%3A44%20GMT%2B0800%20(%E4%B8%AD%E5%9B%BD%E6%A0%87%E5%87%86%E6%97%B6%E9%97%B4)";
+	$url = "http://epub.cnki.net/KNS/request/SearchHandler.ashx?action=&NaviCode=A001_1&ua=1.25&PageName=ASP.brief_result_aspx&DbPrefix=CDMD&DbCatalog=%E4%B8%AD%E5%9B%BD%E4%BC%98%E7%A7%80%E5%8D%9A%E7%A1%95%E5%A3%AB%E5%AD%A6%E4%BD%8D%E8%AE%BA%E6%96%87%E5%85%A8%E6%96%87%E6%95%B0%E6%8D%AE%E5%BA%93&ConfigFile=CDMD.xml&db_opt=%E4%B8%AD%E5%9B%BD%E4%BC%98%E7%A7%80%E5%8D%9A%E7%A1%95%E5%A3%AB%E5%AD%A6%E4%BD%8D%E8%AE%BA%E6%96%87%E5%85%A8%E6%96%87%E6%95%B0%E6%8D%AE%E5%BA%93&db_value=%E4%B8%AD%E5%9B%BD%E5%8D%9A%E5%A3%AB%E5%AD%A6%E4%BD%8D%E8%AE%BA%E6%96%87%E5%85%A8%E6%96%87%E6%95%B0%E6%8D%AE%E5%BA%93%2C%E4%B8%AD%E5%9B%BD%E4%BC%98%E7%A7%80%E7%A1%95%E5%A3%AB%E5%AD%A6%E4%BD%8D%E8%AE%BA%E6%96%87%E5%85%A8%E6%96%87%E6%95%B0%E6%8D%AE%E5%BA%93&his=0&__=Thu%20Jul%2024%202014%2016%3A50%3A33%20GMT%2B0800%20(%E4%B8%AD%E5%9B%BD%E6%A0%87%E5%87%86%E6%97%B6%E9%97%B4)";
 	
 	if(!$code || strlen(trim($code))!=0)
 	    $url = preg_replace("/NaviCode=(.*?)&/", "NaviCode=$code&", $url);
@@ -51,7 +51,7 @@ function getCookieURL($code)
 
 function getIndexURL($fp)
 {
-	$url = "http://epub.cnki.net/KNS/brief/brief.aspx?curpage=2&RecordsPerPage=20&QueryID=52&ID=&turnpage=1&tpagemode=L&dbPrefix=CDMD&Fields=&DisplayMode=listmode&PageName=ASP.brief_result_aspx#J_ORDER";
+	$url = "http://epub.cnki.net/kns/brief/brief.aspx?pagename=ASP.brief_result_aspx&dbPrefix=CDMD&dbCatalog=%E4%B8%AD%E5%9B%BD%E4%BC%98%E7%A7%80%E5%8D%9A%E7%A1%95%E5%A3%AB%E5%AD%A6%E4%BD%8D%E8%AE%BA%E6%96%87%E5%85%A8%E6%96%87%E6%95%B0%E6%8D%AE%E5%BA%93&ConfigFile=CDMD.xml&research=off&t=1406198026225&keyValue=&S=1";
 	
 	//$url = preg_replace("/NaviCode=(.*?)&/", "NaviCode=$code&", $url);
 	return $url;
@@ -118,6 +118,7 @@ function parsePageCount($content)
 	$match = array();
 	preg_match($pattern, $content, $match);
 	//var_dump($match);
+	var_dump($content);
 	return $match[1];
 }
 
@@ -187,7 +188,7 @@ function parsePreviewURL($content)//预览地址，有目录epub.cnki.net/
 
 function validatePageContent($content)
 {
-	echo "validate page content, ";
+	echo "validate page content, $content\n";
 	$error = preg_match("/验证码/", $content);
 	$size = strlen($content)/1024;
 	echo "size: $size(KB).";
@@ -264,8 +265,15 @@ function main($subDir, $class, $cookieURL, $indexURL, $totalClass, $curClass) {
 	$httpClient = new HttpClient("epub.cnki.net");
 
 	$httpClient->get($cookieURL);
+	
 	$cookies = $httpClient->getCookies();
+
 	$httpClient->setCookies($cookies);
+	if(!$cookies)
+	{
+		die("cookie error");
+	}
+
 	
 	$content = "";
 	$indexFname = "./html/$subDir/$class/index.html";
@@ -279,7 +287,7 @@ function main($subDir, $class, $cookieURL, $indexURL, $totalClass, $curClass) {
 	else
 	{
 		$isSleep = true;
-		
+
 		$httpClient->get($indexURL);
 		$content = $httpClient->getContent();
 		save($indexFname, $content);//保存
