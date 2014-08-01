@@ -13,8 +13,7 @@ class HttpClient {
     var $postdata = '';
     var $cookies = array();
     var $referer;
-	var $force_referer;
-	var $location;
+	var $static_ref = true;
 	
 	var $connection = "keep-alive";
 	var $cacheControl = "max-age=0";
@@ -31,7 +30,7 @@ class HttpClient {
                                   // Note: This currently ignores the cookie path (and time) completely. Time is not important, 
                                   //       but path could possibly lead to security problems.
     var $persist_referers = true; // For each request, sends path of last request as referer
-    var $debug = false;
+    var $debug = true;
     var $handle_redirects = true; // Auaomtically redirect if Location or URI header is found
     var $max_redirects = 5;
     var $headers_only = false;    // If true, stops receiving once headers have been read.
@@ -212,12 +211,12 @@ class HttpClient {
             $location = isset($this->headers['location']) ? $this->headers['location'] : '';
             $uri = isset($this->headers['uri']) ? $this->headers['uri'] : '';
             if ($location || $uri) {
-
-                //$url = parse_url($location . $uri);
+				// var_dump($location);
+				// var_dump($uri);
+				// exit;
+                $url = parse_url($location . $uri);
                 // This will FAIL if redirect is to a different site
-                //return $this->get($url['path']);
-				$this->location = $location;
-				return $location;
+                return $this->get($url['path']);
             }
         }
         return true;
@@ -225,9 +224,7 @@ class HttpClient {
     function buildRequest() {
         $headers = array();
 		//$path = urlencode($this->path);
-		
 		$path = $this->path;
-		$this->debug("Path\n**$path");
         $headers[] = "{$this->method} {$path} HTTP/1.0"; // Using 1.1 leads to all manner of problems, such as "chunked" encoding
         $headers[] = "Host: {$this->host}";
         $headers[] = "User-Agent: {$this->user_agent}";
@@ -388,12 +385,7 @@ class HttpClient {
 	
 	function setReferer($refUrl)
 	{
-		$this->force_referer = $refUrl;
-	}
-	
-	function getLocation()
-	{
-		return $this->location;
+		$this->referer = $refUrl;
 	}
 		
 }

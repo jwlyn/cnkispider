@@ -4,7 +4,7 @@ require_once 'HttpClient.class.php';
 
 define("MIN_SLEEP_USEC", 2);
 define("MAX_SLEEP_USEC", 4);
-define("ARTICLE_PRE_PAGE", 200);
+define("ARTICLE_PRE_PAGE", 50);
 
 function readLine($fp)
 {
@@ -37,7 +37,7 @@ function getClass($fp)
 */
 function getCookieURL($code)
 {
-	$url = "http://epub.cnki.net/KNS/request/SearchHandler.ashx?action=&NaviCode=A001_1&ua=1.25&PageName=ASP.brief_result_aspx&DbPrefix=CDMD&DbCatalog=%E4%B8%AD%E5%9B%BD%E4%BC%98%E7%A7%80%E5%8D%9A%E7%A1%95%E5%A3%AB%E5%AD%A6%E4%BD%8D%E8%AE%BA%E6%96%87%E5%85%A8%E6%96%87%E6%95%B0%E6%8D%AE%E5%BA%93&ConfigFile=CDMD.xml&db_opt=%E4%B8%AD%E5%9B%BD%E4%BC%98%E7%A7%80%E5%8D%9A%E7%A1%95%E5%A3%AB%E5%AD%A6%E4%BD%8D%E8%AE%BA%E6%96%87%E5%85%A8%E6%96%87%E6%95%B0%E6%8D%AE%E5%BA%93&db_value=%E4%B8%AD%E5%9B%BD%E5%8D%9A%E5%A3%AB%E5%AD%A6%E4%BD%8D%E8%AE%BA%E6%96%87%E5%85%A8%E6%96%87%E6%95%B0%E6%8D%AE%E5%BA%93%2C%E4%B8%AD%E5%9B%BD%E4%BC%98%E7%A7%80%E7%A1%95%E5%A3%AB%E5%AD%A6%E4%BD%8D%E8%AE%BA%E6%96%87%E5%85%A8%E6%96%87%E6%95%B0%E6%8D%AE%E5%BA%93&his=0&__=Thu%20Jul%2024%202014%2016%3A50%3A33%20GMT%2B0800%20(%E4%B8%AD%E5%9B%BD%E6%A0%87%E5%87%86%E6%97%B6%E9%97%B4)";
+	$url = "http://epub.cnki.net/KNS/request/SearchHandler.ashx?action=&NaviCode=A001&ua=1.25&PageName=ASP.brief_result_aspx&DbPrefix=CDMD&DbCatalog=%E4%B8%AD%E5%9B%BD%E4%BC%98%E7%A7%80%E5%8D%9A%E7%A1%95%E5%A3%AB%E5%AD%A6%E4%BD%8D%E8%AE%BA%E6%96%87%E5%85%A8%E6%96%87%E6%95%B0%E6%8D%AE%E5%BA%93&ConfigFile=CDMD.xml&db_opt=%E4%B8%AD%E5%9B%BD%E4%BC%98%E7%A7%80%E5%8D%9A%E7%A1%95%E5%A3%AB%E5%AD%A6%E4%BD%8D%E8%AE%BA%E6%96%87%E5%85%A8%E6%96%87%E6%95%B0%E6%8D%AE%E5%BA%93&db_value=%E4%B8%AD%E5%9B%BD%E5%8D%9A%E5%A3%AB%E5%AD%A6%E4%BD%8D%E8%AE%BA%E6%96%87%E5%85%A8%E6%96%87%E6%95%B0%E6%8D%AE%E5%BA%93%2C%E4%B8%AD%E5%9B%BD%E4%BC%98%E7%A7%80%E7%A1%95%E5%A3%AB%E5%AD%A6%E4%BD%8D%E8%AE%BA%E6%96%87%E5%85%A8%E6%96%87%E6%95%B0%E6%8D%AE%E5%BA%93&his=0&__=Mon%20Jul%2028%202014%2018%3A12%3A22%20GMT%2B0800%20(%E4%B8%AD%E5%9B%BD%E6%A0%87%E5%87%86%E6%97%B6%E9%97%B4)";
 	
 	if(!$code || strlen(trim($code))!=0)
 	    $url = preg_replace("/NaviCode=(.*?)&/", "NaviCode=$code&", $url);
@@ -51,9 +51,8 @@ function getCookieURL($code)
 
 function getIndexURL($fp)
 {
-	$url = "http://epub.cnki.net/kns/brief/brief.aspx?pagename=ASP.brief_result_aspx&dbPrefix=CDMD&dbCatalog=%E4%B8%AD%E5%9B%BD%E4%BC%98%E7%A7%80%E5%8D%9A%E7%A1%95%E5%A3%AB%E5%AD%A6%E4%BD%8D%E8%AE%BA%E6%96%87%E5%85%A8%E6%96%87%E6%95%B0%E6%8D%AE%E5%BA%93&ConfigFile=CDMD.xml&research=off&t=1406198026225&keyValue=&S=1";
-	
-	//$url = preg_replace("/NaviCode=(.*?)&/", "NaviCode=$code&", $url);
+	$url = "http://epub.cnki.net/kns/brief/brief.aspx?curpage=1&RecordsPerPage=".ARTICLE_PRE_PAGE."&QueryID=81&ID=&turnpage=1&tpagemode=L&dbPrefix=CDMD&Fields=&DisplayMode=listmode&PageName=ASP.brief_result_aspx";
+
 	return $url;
 }
 
@@ -78,7 +77,7 @@ function saveFile($fileName, $text) {
 function makeDir($dir, $mode = "0777") {
 	if (!$dir)
 	return false;
-	
+	echo __FILE__ . __LINE__ . $dir . "\n";
 	$dir = iconv("utf-8","gb2312", $dir);
 	if (!file_exists($dir)) {
 		return mkdir($dir);
@@ -114,20 +113,28 @@ function getPageI($url, $i)
 
 function parsePageCount($content)
 {
-	$pattern = '/<\/div>\d+\/(\d+)<a id="Page_prev"/';
+	//$pattern = '/<\/div>\d+\/(\d+)<a id="Page_prev"/';
+	$pattern = '/<span class=\'countPageMark\'>浏览\d+\/(\d+)<\/span>/';
+	$pattern2 = '/<div.*?>.*?&nbsp;找到&nbsp;(\d+)&nbsp;条结果&nbsp;<\/div>/';
+	
 	$match = array();
-	preg_match($pattern, $content, $match);
-	//var_dump($match);
-	var_dump($content);
-	return $match[1];
+	if(preg_match($pattern, $content, $match))
+	{
+		return $match[1];
+	}
+	else if(preg_match($pattern2, $content, $match))
+	{
+		return ceil($match[1]/ARTICLE_PRE_PAGE);
+	}
+	return 0;
 }
 
 function parseArticleName($content)//解析文章名字
 {
 	$pattern = "/ReplaceChar\('(.*?)'\)/";
 	$match = array();
-	preg_match_all($pattern, $content, $match);
-	
+	$rt = preg_match_all($pattern, $content, $match);
+	if(!$rt)return array();
 	return $match[1];
 }
 
@@ -135,8 +142,8 @@ function parseAuthor($content)//解析文章作者
 {
 	$pattern = '/target="knet">(.*?)<\/a>/';
 	$match = array();
-	preg_match_all($pattern, $content, $match);
-	
+	$rt = preg_match_all($pattern, $content, $match);
+	if(!$rt)return array();
 	return $match[1];
 }
 
@@ -144,8 +151,8 @@ function parseSchool($content)//解析学位授予单位
 {
 	$pattern = '/target="cdmdNavi">(.*?)<\/a>/';
 	$match = array();
-	preg_match_all($pattern, $content, $match);
-	
+	$rt = preg_match_all($pattern, $content, $match);
+	if(!$rt)return array();
 	return $match[1];
 }
 
@@ -154,8 +161,8 @@ function parseYear($content)//学位授予年份*
 	$pattern = "/<td>\s*(\d+年)\s*<\/td>/is";
 	//$pattern = iconv("utf-8","gb2312", $pattern);
 	$match = array();
-	preg_match_all($pattern, $content, $match);
-	
+	$rt = preg_match_all($pattern, $content, $match);
+	if(!$rt)return array();
 	return $match[1];
 }
 
@@ -163,8 +170,8 @@ function parseOrigin($content)//学位来源*
 {
 	$pattern = "/<td>\s*(.*?士)\s*<\/td>/";
 	$match = array();
-	preg_match_all($pattern, $content, $match);
-	
+	$rt = preg_match_all($pattern, $content, $match);
+	if(!$rt)return array();
 	return $match[1];
 }
 
@@ -172,23 +179,33 @@ function parseDownCount($content)//论文下载次数
 {
 	$pattern = '/<span class="downloadCount">(\d+)<\/span>/';
 	$match = array();
-	preg_match_all($pattern, $content, $match);
-	
+	$rt = preg_match_all($pattern, $content, $match);
+	if(!$rt)return array();
 	return $match[1];
 }
 
 function parsePreviewURL($content)//预览地址，有目录epub.cnki.net/
 {
-	$pattern = '/<a target="online_open" href=\'(.*?)\'>/';
+	$pattern = '/<a target="online_open" .*? href=\'(.*?)\'>/';
 	$match = array();
-	preg_match_all($pattern, $content, $match);
-	
+	$rt = preg_match_all($pattern, $content, $match);
+	if(!$rt)return array();
+	return $match[1];
+}
+
+function parseAbstractUrl($content)
+{
+	//$pattern = '/<a target="online_open" .*? href=\'(.*?)\'>/';
+	$pattern = '/<a.*?class="fz14" href=\'(.*?)\' target=\'_blank\'><script .*?<\/a>/';
+	$match = array();
+	$rt = preg_match_all($pattern, $content, $match);
+	if(!$rt)return array();
 	return $match[1];
 }
 
 function validatePageContent($content)
 {
-	echo "validate page content, $content\n";
+	echo "validate page content\n";
 	$error = preg_match("/验证码/", $content);
 	$size = strlen($content)/1024;
 	echo "size: $size(KB).";
@@ -214,29 +231,31 @@ function validatePageContent($content)
 	}
 }
 
-function parseContent($content, $fileName) 
+function parseContent($content, $fileName, $code) 
 {
-	echo "parseContent.......";
+	//save("./tmp.html", $content);
+	echo "parseContent : $fileName >> ";
 	/* 文章名字，作者，学位授予单位，来源数据库，学位授予年度，下载次数，预览地址 */
 	$articleName = parseArticleName($content);
 	$authors = parseAuthor($content);
 	$schools = parseSchool($content);
 	$origin = parseOrigin($content);
 	$years = parseYear($content);
-	$downCount = parseDownCount($content);
+	//$downCount = parseDownCount($content);
 	$previewPage = parsePreviewURL($content);
+	$abstractUrl = parseAbstractUrl($content);
 	
 	$saveContent = "";
 	$len = count($articleName);
 	for($i=0; $i<$len; $i++)
 	{
-		$item = "{$articleName[$i]}\t{$authors[$i]}\t{$schools[$i]}\t{$origin[$i]}\t{$years[$i]}\t{$downCount[$i]}\t{$previewPage[$i]}";
+		$item = "{$articleName[$i]}\t{$authors[$i]}\t{$schools[$i]}\t{$origin[$i]}\t{$years[$i]}\t{$previewPage[$i]}\t{$abstractUrl[$i]}\t{$code}";
 		$saveContent .= "$item\n";
 	}
 	
 	if($len==0)
 	{
-		echo "Done... but get nothing form $content\n";
+		echo "Done... but get nothing form $fileName\n";
 		return;
 	}	
 	save($fileName, $saveContent, "a+");
@@ -256,7 +275,7 @@ function fakeSleep()
 	echo "wake up now!\n";
 }
 
-function main($subDir, $class, $cookieURL, $indexURL, $totalClass, $curClass) {
+function main($subDir, $class, $cookieURL, $indexURL, $totalClass, $curClass, $code) {
 
 	$isSleep = true;
 	makeDir("./html/$subDir/$class/");
@@ -264,15 +283,9 @@ function main($subDir, $class, $cookieURL, $indexURL, $totalClass, $curClass) {
 
 	$httpClient = new HttpClient("epub.cnki.net");
 
-	$httpClient->get($cookieURL);
+	//echo "\n******************************************************************\n";
+	//var_dump($httpClient->getContent());
 	
-	$cookies = $httpClient->getCookies();
-
-	$httpClient->setCookies($cookies);
-	if(!$cookies)
-	{
-		die("cookie error");
-	}
 
 	
 	$content = "";
@@ -286,18 +299,26 @@ function main($subDir, $class, $cookieURL, $indexURL, $totalClass, $curClass) {
 	}
 	else
 	{
+		/*获取并设置cookie*/
+		$httpClient->get($cookieURL);
+		$cookies = $httpClient->getCookies();
+		$httpClient->setCookies($cookies);
+		if(!$cookies)die("cookie error");
+
 		$isSleep = true;
 
 		$httpClient->get($indexURL);
 		$content = $httpClient->getContent();
 		save($indexFname, $content);//保存
 		echo "save index file...\n";
+
 	}
 	
 	/* 解析出一共有多少页面 */
+	
 	$pageCount = parsePageCount($content);
 
-	$articleCount = 20 * $pageCount;//计算一共有多少篇文章,大于等于实际文章数目，不影响结果
+	$articleCount = ARTICLE_PRE_PAGE * $pageCount;//计算一共有多少篇文章,大于等于实际文章数目，不影响结果
 	echo "total article is $articleCount\n";
 	$pageCount = $articleCount / ARTICLE_PRE_PAGE;
 	$pageCount = ceil($pageCount);//向上取整,不放过任何数据
@@ -360,7 +381,7 @@ function main($subDir, $class, $cookieURL, $indexURL, $totalClass, $curClass) {
 			$httpClient->setCookies($cookies);
 			continue;
 		}
-		parseContent($content, $logName);
+		parseContent($content, $logName, $code);
 		if($i!=$pageCount && $isSleep)
 			fakeSleep();//睡一阵子
 		else
@@ -396,7 +417,7 @@ function textFlash($str)
 
 function getTotalClass($fname)
 {
-	$fname = iconv("utf-8","gb2312", $fname);
+	$fname = iconv("utf-8","gbk", $fname);
 	$fp = fopen($fname, "r");
 	$line = 0;
 	while(fgets($fp)) $line++;
@@ -427,4 +448,78 @@ function delFile($fileName)
 	{
 		echo "Delete file $fileName failure!";
 	}
+}
+
+
+function get_db_code($url)
+{
+	$match = array();
+	preg_match("/dbcode=(.*?)&/", $url, $match);
+
+	return $match[1];
+	
+}
+
+function get_file_name($url)
+{
+	$match = array();
+	preg_match("/filename=(.*?)$/", $url, $match);
+	return $match[1];
+}
+
+function get_table_name($url)
+{
+	$match = array();
+	preg_match("/dbname=(.*?)&/", $url, $match);
+	return $match[1];
+}
+
+function get_real_url($dbCode, $fileName, $tableName)
+{
+	$url = "http://kreader.cnki.net/Kreader/buildTree.aspx?dbCode=CDMD&FileName=2007097337.nh&TableName=CDFD9908&sourceCode=GZKJU&date=&year=2007&period=03&fileNameList=&compose=&subscribe=&titleName=&columnCode=&previousType=_&uid=";
+	$dbCodePattern = "/dbCode=(.*?)&/";
+	$fileNamePattern = "/FileName=(.*?)&/";
+	$tableNamePattern = "/TableName=(.*?)&/";
+	
+	$url = preg_replace($dbCodePattern, "dbCode=".$dbCode."&", $url);
+	$url = preg_replace($fileNamePattern, "FileName=".$fileName."&", $url);
+	$url = preg_replace($tableNamePattern, "TableName=".$tableName."&", $url);
+	
+	return $url;
+}
+
+
+function get_all_log_file($path)
+{
+	$i = 1;
+	$files = array();
+	$dir = opendir($path);
+
+	//列出 images 目录中的文件
+	while (($file = readdir($dir)) !== false)
+	{
+		//$file = iconv("utf-8","gb2312", $file);
+		if(is_file($path . $file))
+		{
+			$files[] = $path . $file;
+			//echo "[$i] >> Find file $file\n";
+		}
+		else
+		{
+			echo "$file not a file, skip\n";
+		}
+	}
+	closedir($dir);
+	
+	return $files;
+}
+
+function win_dir_format($path)
+{
+	// $illegalChar = "/\:*?\"<>|}、'？";
+	// for($i=0; $i<strlen($illegalChar); $i++)
+	// {
+		// $path = str_replace($illegalChar[$i], "_", $path);
+	// }
+	return $path;
 }

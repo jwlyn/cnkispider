@@ -36,6 +36,8 @@ $fp = fopen($indexFileName, "r");
 
 while($line=readLine($fp))
 {
+	if(strlen(trim($line))==0)
+		continue;
 	$className = getClassName($line);
 	$code = getClassCode($line);
 	if(!$code ||!$className)
@@ -46,7 +48,6 @@ while($line=readLine($fp))
 	$indexURL = getIndexURL($code);       //首页地址
 	$cookieURL = getCookieURL($code);    //初始化cookie，防止被识破
 	
-
 	$indexURL = cleanIndexURL($indexURL);
 
 	//exit;
@@ -56,7 +57,7 @@ while($line=readLine($fp))
 		exit;
 	}
 
-	main($class, $className, $cookieURL, $indexURL, $totalClass, $curClass++);
+	main($class, $className, $cookieURL, $indexURL, $totalClass, $curClass++, $code);
     echo "+\n";
 	echo "+\n";
 	echo "+抓取$className 成功 ^_^\n";
