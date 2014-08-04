@@ -36,18 +36,6 @@ function resourceReplace($content)
 	return $content;
 }
 
-function save1($file, $content, $mod="w+")
-{
-	if(!$content)
-	return;
-	$file = iconv("utf-8","gb2312", $file);
-	$fp = fopen($file, $mod);
-	fwrite($fp, $content);
-	fclose($fp);
-}
-
-
-
 ?>
 
 <?php
@@ -67,11 +55,12 @@ foreach($files as $file)//每个文件的
 	$fp = fopen($file, "r");
 	$file = iconv("gb2312","utf-8", $file);
 	$subdir = basename($file, ".log");
-	$subdir = win_dir_format($subdir);
+	//$subdir = win_dir_format($subdir);
 	$indexSavePath = "./data/index/$key/" . $subdir;
 	makeDir($indexSavePath);
 	
 	$mapFile = $indexSavePath . "/paper_url_mapping.log";
+	delFile($mapFile);
 	$icount = 1;
 	while($line=readLine($fp))//每一行
 	{
@@ -79,6 +68,15 @@ foreach($files as $file)//每个文件的
 		$u = $arr[6];
 		$paperName = $arr[0];
 		$paperName = win_dir_format($paperName);
+		echo $paperName . "\n";
+		$htmlFileName = $indexSavePath . "/" . $paperName . ".html";
+		$tmpFile = iconv("utf-8","gb2312", $htmlFileName);
+		//echo $tmpFile . "\n";
+		if(file_exists($tmpFile))
+		{
+			echo "Cache hit! continue -> $htmlFileName\n";
+			continue;
+		}
 		
 		$dbCode = get_db_code($u);
 		$fileName = get_file_name($u);
@@ -86,20 +84,13 @@ foreach($files as $file)//每个文件的
 
 		$realUrl = get_real_url($dbCode, $fileName, $tableName);
 		$indexContent = file_get_contents($realUrl);
-		$htmlFileName = $indexSavePath . "/" . $paperName . ".html";
-		$tmpFile = iconv("utf-8","gb2312", $htmlFileName);
 
-		if(file_exists($tmpFile))
-		{
-			echo "Cache hit! continue -> $htmlFileName\n";
-			continue;
-		}
 		$indexContent = resourceReplace($indexContent);
 
-		save1($htmlFileName, $indexContent);
+		save($htmlFileName, $indexContent);
 		
 		$mapContent = "$paperName\t$realUrl\n";
-		save1($mapFile, $mapContent, "a+");
+		save($mapFile, $mapContent, "a+");
 		echo "[" . $icount++ . "] " ."Save file $htmlFileName\n";
 		fakeSleep();
 	}

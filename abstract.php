@@ -114,7 +114,8 @@ foreach($files as $file)//每个文件的
 		$arr  = explode("\t", $line);
 		$u = $arr[6];
 		$paperName = $arr[0];
-		$paperName = win_dir_format($paperName);
+		//$paperName = win_dir_format($paperName);
+
 		$code = $arr[7];
 		
 		/*获取Referer头*/
@@ -172,7 +173,6 @@ foreach($files as $file)//每个文件的
 		$keyWords .= "#" . get_mentor($content) . "#" . get_major($content);
 		$abs = get_paper_abs($content);
 		
-
 		save("$absPath", $keyWords . "\n" . $abs);
 
 		if($sleep)

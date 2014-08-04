@@ -37,7 +37,7 @@ function getClass($fp)
 */
 function getCookieURL($code)
 {
-	$url = "http://epub.cnki.net/KNS/request/SearchHandler.ashx?action=&NaviCode=A001&ua=1.25&PageName=ASP.brief_result_aspx&DbPrefix=CDMD&DbCatalog=%E4%B8%AD%E5%9B%BD%E4%BC%98%E7%A7%80%E5%8D%9A%E7%A1%95%E5%A3%AB%E5%AD%A6%E4%BD%8D%E8%AE%BA%E6%96%87%E5%85%A8%E6%96%87%E6%95%B0%E6%8D%AE%E5%BA%93&ConfigFile=CDMD.xml&db_opt=%E4%B8%AD%E5%9B%BD%E4%BC%98%E7%A7%80%E5%8D%9A%E7%A1%95%E5%A3%AB%E5%AD%A6%E4%BD%8D%E8%AE%BA%E6%96%87%E5%85%A8%E6%96%87%E6%95%B0%E6%8D%AE%E5%BA%93&db_value=%E4%B8%AD%E5%9B%BD%E5%8D%9A%E5%A3%AB%E5%AD%A6%E4%BD%8D%E8%AE%BA%E6%96%87%E5%85%A8%E6%96%87%E6%95%B0%E6%8D%AE%E5%BA%93%2C%E4%B8%AD%E5%9B%BD%E4%BC%98%E7%A7%80%E7%A1%95%E5%A3%AB%E5%AD%A6%E4%BD%8D%E8%AE%BA%E6%96%87%E5%85%A8%E6%96%87%E6%95%B0%E6%8D%AE%E5%BA%93&his=0&__=Mon%20Jul%2028%202014%2018%3A12%3A22%20GMT%2B0800%20(%E4%B8%AD%E5%9B%BD%E6%A0%87%E5%87%86%E6%97%B6%E9%97%B4)";
+	$url = "http://epub.cnki.net/KNS/request/SearchHandler.ashx?action=&NaviCode=A&ua=1.25&PageName=ASP.brief_result_aspx&DbPrefix=CDMD&DbCatalog=%E4%B8%AD%E5%9B%BD%E4%BC%98%E7%A7%80%E5%8D%9A%E7%A1%95%E5%A3%AB%E5%AD%A6%E4%BD%8D%E8%AE%BA%E6%96%87%E5%85%A8%E6%96%87%E6%95%B0%E6%8D%AE%E5%BA%93&ConfigFile=CDMD.xml&db_opt=%E4%B8%AD%E5%9B%BD%E4%BC%98%E7%A7%80%E5%8D%9A%E7%A1%95%E5%A3%AB%E5%AD%A6%E4%BD%8D%E8%AE%BA%E6%96%87%E5%85%A8%E6%96%87%E6%95%B0%E6%8D%AE%E5%BA%93&db_value=%E4%B8%AD%E5%9B%BD%E5%8D%9A%E5%A3%AB%E5%AD%A6%E4%BD%8D%E8%AE%BA%E6%96%87%E5%85%A8%E6%96%87%E6%95%B0%E6%8D%AE%E5%BA%93%2C%E4%B8%AD%E5%9B%BD%E4%BC%98%E7%A7%80%E7%A1%95%E5%A3%AB%E5%AD%A6%E4%BD%8D%E8%AE%BA%E6%96%87%E5%85%A8%E6%96%87%E6%95%B0%E6%8D%AE%E5%BA%93&his=0&__=Mon%20Aug%2004%202014%2018%3A07%3A41%20GMT%2B0800%20(%E4%B8%AD%E5%9B%BD%E6%A0%87%E5%87%86%E6%97%B6%E9%97%B4)";
 	
 	if(!$code || strlen(trim($code))!=0)
 	    $url = preg_replace("/NaviCode=(.*?)&/", "NaviCode=$code&", $url);
@@ -80,6 +80,7 @@ function makeDir($dir, $mode = "0777") {
 	echo __FILE__ . __LINE__ . $dir . "\n";
 	$dir = iconv("utf-8","gb2312", $dir);
 	if (!file_exists($dir)) {
+		echo $dir . "\n";
 		return mkdir($dir);
 	} else {
 		return true;
@@ -90,6 +91,8 @@ function save($file, $content, $mod="w+")
 {
 	if(!$content)
 	return;
+	
+	//echo "SAVE FILE $file\n";
 	$file = iconv("utf-8","gb2312", $file);
 	$fp = fopen("$file", $mod);
 	fwrite($fp, $content);
@@ -158,8 +161,8 @@ function parseSchool($content)//解析学位授予单位
 
 function parseYear($content)//学位授予年份*
 {
-	$pattern = "/<td>\s*(\d+年)\s*<\/td>/is";
-	//$pattern = iconv("utf-8","gb2312", $pattern);
+	$pattern = "/<td>\s*(\d+年)\s*<\/td>/ism";
+	//$pattern = iconv("gb2312", "utf-8", $pattern);
 	$match = array();
 	$rt = preg_match_all($pattern, $content, $match);
 	if(!$rt)return array();
@@ -168,7 +171,9 @@ function parseYear($content)//学位授予年份*
 
 function parseOrigin($content)//学位来源*
 {
-	$pattern = "/<td>\s*(.*?士)\s*<\/td>/";
+	$pattern = "/<td>\s*([博|硕]士)\s*<\/td>/ism";
+	$pattern = "/\s*(博士|硕士)\s*/";
+	//$pattern = iconv("gb2312", "utf-8", $pattern);
 	$match = array();
 	$rt = preg_match_all($pattern, $content, $match);
 	if(!$rt)return array();
@@ -241,15 +246,17 @@ function parseContent($content, $fileName, $code)
 	$schools = parseSchool($content);
 	$origin = parseOrigin($content);
 	$years = parseYear($content);
+	//var_dump($origin);exit;
 	//$downCount = parseDownCount($content);
 	$previewPage = parsePreviewURL($content);
 	$abstractUrl = parseAbstractUrl($content);
-	
+	//echo count($articleName) . " >> " . count($authors) . " >> " .count($schools) . " >> " .count($origin) . " >> " .count($years) . " \n";
 	$saveContent = "";
 	$len = count($articleName);
 	for($i=0; $i<$len; $i++)
 	{
-		$item = "{$articleName[$i]}\t{$authors[$i]}\t{$schools[$i]}\t{$origin[$i]}\t{$years[$i]}\t{$previewPage[$i]}\t{$abstractUrl[$i]}\t{$code}";
+		$articleNm = win_dir_format($articleName[$i]); 
+		$item = "{$articleNm}\t{$authors[$i]}\t{$schools[$i]}\t{$origin[$i]}\t{$years[$i]}\t{$previewPage[$i]}\t{$abstractUrl[$i]}\t{$code}";
 		$saveContent .= "$item\n";
 	}
 	
@@ -282,19 +289,16 @@ function main($subDir, $class, $cookieURL, $indexURL, $totalClass, $curClass, $c
 	$dataFileName = "data/$subDir/$class.log";
 
 	$httpClient = new HttpClient("epub.cnki.net");
-
-	//echo "\n******************************************************************\n";
-	//var_dump($httpClient->getContent());
-	
-
 	
 	$content = "";
 	$indexFname = "./html/$subDir/$class/index.html";
 	
-	if(file_exists(iconv("utf-8","gb2312", $indexFname)))
+	$tf = iconv("utf-8","gb2312", $indexFname);
+	$cookies = "";
+	if(file_exists($tf))
 	{
 		$isSleep = false;
-		$content = file_get_contents(iconv("utf-8","gb2312", $indexFname));
+		$content = file_get_contents($tf);
 		echo "From cache get index.....\n";
 	}
 	else
@@ -317,7 +321,7 @@ function main($subDir, $class, $cookieURL, $indexURL, $totalClass, $curClass, $c
 	/* 解析出一共有多少页面 */
 	
 	$pageCount = parsePageCount($content);
-
+	echo "Page is $pageCount ****\n";
 	$articleCount = ARTICLE_PRE_PAGE * $pageCount;//计算一共有多少篇文章,大于等于实际文章数目，不影响结果
 	echo "total article is $articleCount\n";
 	$pageCount = $articleCount / ARTICLE_PRE_PAGE;
@@ -344,7 +348,7 @@ function main($subDir, $class, $cookieURL, $indexURL, $totalClass, $curClass, $c
 		$pageI = getPageI($indexURL, $i);//第i页的地址
 		$htmlI = "./html/$subDir/$class/$i.html";
 		
-		if(!file_exists(iconv("utf-8","gb2312", $htmlI)))
+		if(!file_exists(iconv("utf-8", "gb2312", $htmlI)))
 		{
 			$isSleep = true;
 			$httpClient->setCookies($cookies);
@@ -355,7 +359,8 @@ function main($subDir, $class, $cookieURL, $indexURL, $totalClass, $curClass, $c
 		}
 		else//本地文件是存在的
 		{
-			$content = file_get_contents(iconv("utf-8","gb2312", $htmlI));
+			$tmpf2 = iconv("utf-8","gb2312", $htmlI);
+			$content = file_get_contents($tmpf2);
 			$ok = validatePageContent($content); //是否出现了验证码
 			if(!$ok)//是个验证码页
 			{
@@ -417,8 +422,8 @@ function textFlash($str)
 
 function getTotalClass($fname)
 {
-	$fname = iconv("utf-8","gbk", $fname);
-	$fp = fopen($fname, "r");
+	$fname1 = iconv("utf-8","gb2312", $fname);
+	$fp = fopen($fname1, "r");
 	$line = 0;
 	while(fgets($fp)) $line++;
 	fclose($fp);
@@ -440,7 +445,7 @@ function dosleep($seconds)
 function delFile($fileName)
 {
 	$file = iconv("utf-8","gb2312", $fileName);
-	if(unlink($file))
+	if(file_exists($file) && unlink($file))
 	{
 		echo "Delete file $fileName success!\n";
 	}
@@ -498,7 +503,7 @@ function get_all_log_file($path)
 	//列出 images 目录中的文件
 	while (($file = readdir($dir)) !== false)
 	{
-		//$file = iconv("utf-8","gb2312", $file);
+		
 		if(is_file($path . $file))
 		{
 			$files[] = $path . $file;
@@ -516,10 +521,8 @@ function get_all_log_file($path)
 
 function win_dir_format($path)
 {
-	// $illegalChar = "/\:*?\"<>|}、'？";
-	// for($i=0; $i<strlen($illegalChar); $i++)
-	// {
-		// $path = str_replace($illegalChar[$i], "_", $path);
-	// }
+	$path = str_replace("/", "_", $path);
+	$path = str_replace("-","_", $path);
+	$path = str_replace("—","_", $path);
 	return $path;
 }

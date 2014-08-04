@@ -9,8 +9,9 @@ function get_class_file($class)
 function parse_classpath_code($line)
 {
 	$data = array();
-	$arr = explode("\t", $line);
+	$arr = explode(" ", $line);
 	$data['classpath'] = $arr[0];
+
 	$data['code'] = $arr[1];
 	
 	$arr2 = explode("#", $arr[0]);
@@ -25,7 +26,9 @@ function get_abstract_by_title($class, $classpath, $title)
 	$abstract = array();
 	
 	$path = "./data/abstract/$class/$classpath/"."$title.log";
-	$fp = fopen($path, "r+");
+	echo __LINE__ ."$path\n";
+	$p1 = iconv("utf-8", "gb2312", $path);
+	$fp = fopen($p1, "r+");
 	$i=0;
 	while($line=readLine($fp))
 	{
@@ -52,7 +55,7 @@ function get_title_detail_map($class, $classpath)
 {
 	$path = "./data/abstract/$class/$classpath/paper_abstract_url.log";
 	$map = array();
-	$fp = fopen($path, "r+");
+	$fp = fopen(iconv("utf-8", "gb2312", $path), "r+");
 	
 	while($line=readLine($fp))
 	{
@@ -68,7 +71,7 @@ function get_title_detail_map($class, $classpath)
 function get_index($class, $classpath, $title)
 {
 	$path = "./data/index/$class/$classpath/$title.html";
-	$content = file_get_contents($path);
+	$content = file_get_contents(iconv("utf-8", "gb2312", $path));
 	return $content;
 }
 
@@ -76,7 +79,7 @@ function get_index_url_map($class, $classpath)
 {
 	$path = "./data/index/$class/$classpath/paper_url_mapping.log";
 	$map = array();
-	$fp = fopen($path, "r+");
+	$fp = fopen(iconv("utf-8", "gb2312", $path), "r+");
 	
 	while($line=readLine($fp))
 	{
@@ -96,7 +99,7 @@ function get_docs_by_classpath($class, $classpath, $baseInfo)
 	$docs = array();
 	$path = "./data/".$class;
 	$file_list_of_class = $path . "/" . $classpath . ".log";
-	$fp = fopen($file_list_of_class, "r+");
+	$fp = fopen(iconv("utf-8", "gb2312", $file_list_of_class), "r+");
 	while($line=readLine($fp))
 	{
 		if(strlen($line)==0)continue;
@@ -134,8 +137,8 @@ function save_2_mongo($docs)
 
 <?php 
 /**
- * ½ÓÊÕ²ÎÊý£¬²ÎÊýÊÇÒ»¸öÊý×Ö£¬´ú±íÃ¿´Î
- * ×Ô¶¯¸üÐÂµÄÊýÄ¿
+ * æŽ¥æ”¶å‚æ•°ï¼Œå‚æ•°æ˜¯ä¸€ä¸ªæ•°å­—ï¼Œä»£è¡¨æ¯æ¬¡
+ * è‡ªåŠ¨æ›´æ–°çš„æ•°ç›®
  */
 $key = @$argv[1];
 if(!$key)
@@ -148,8 +151,8 @@ $classFolder = "./index/";
 $class = array("A", "B", "C", "D", "E", "F", "G", "H", "I", "J");
 foreach($class as $c)
 {
-	$path = $classFolder . $c . "/" . get_class_file($c);//Àà ±ðÈë¿Ú
-	$fp = fopen($path, "r+");
+	$path = $classFolder . $c . "/" . get_class_file($c);//ç±» åˆ«å…¥å£
+	$fp = fopen(iconv("utf-8", "gb2312", $path), "r+");
 	while($line=readLine($fp))
 	{
 		$docInfo = parse_classpath_code($line);//class, classpath, code

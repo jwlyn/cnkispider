@@ -60,7 +60,7 @@ while($line=readLine($fp))
 	main($class, $className, $cookieURL, $indexURL, $totalClass, $curClass++, $code);
     echo "+\n";
 	echo "+\n";
-	echo "+抓取$className 成功 ^_^\n";
+	echo "+抓取 $className 成功 ^_^\n";
 	//textFlash("成功 ^_^\n");
 	echo "+\n";
 	echo "+\n";
