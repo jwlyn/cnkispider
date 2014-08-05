@@ -521,6 +521,15 @@ function get_all_log_file($path)
 
 function win_dir_format($path)
 {
+	$path = str_replace("<", "_", $path);
+	$path = str_replace(">", "_", $path);
+	$path = str_replace("\\", "_", $path);
+	$path = str_replace("|", "_", $path);
+	$path = str_replace(":", "_", $path);
+	$path = str_replace("\"", "_", $path);
+	$path = str_replace("*", "_", $path);
+	$path = str_replace("?", "_", $path);
+	
 	$path = str_replace("/", "_", $path);
 	$path = str_replace("-","_", $path);
 	$path = str_replace("—","_", $path);

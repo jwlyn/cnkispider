@@ -138,8 +138,14 @@ foreach($files as $file)//每个文件的
 			/*获取并设置cookie*/
 			$httpClient->get($cookieURL);
 			$cookies = $httpClient->getCookies();
+			while(!$cookies)
+			{
+				echo "Cookie是空的，睡眠30S\n";
+				sleep(30);
+				$cookies = $httpClient->getCookies();
+			}
 			$httpClient->setCookies($cookies);
-			if(!$cookies)die("cookie error");
+
 			
 			$httpClient->setReferer($refUrl);
 			
