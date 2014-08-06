@@ -140,8 +140,10 @@ foreach($files as $file)//每个文件的
 			$cookies = $httpClient->getCookies();
 			while(!$cookies)
 			{
-				echo "Cookie是空的，睡眠30S\n";
-				sleep(30);
+				$sc = 150;
+				echo "Cookie是空的，睡眠$sc S\n";
+				sleep($sc);
+				$httpClient->get($cookieURL);
 				$cookies = $httpClient->getCookies();
 			}
 			$httpClient->setCookies($cookies);
