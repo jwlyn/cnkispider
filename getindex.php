@@ -68,9 +68,9 @@ foreach($files as $file)//每个文件的
 		$u = $arr[6];
 		$paperName = $arr[0];
 		$paperName = win_dir_format($paperName);
-		echo $paperName . "\n";
+		//echo $paperName . "\n";
 		$htmlFileName = $indexSavePath . "/" . $paperName . ".html";
-		$tmpFile = iconv("utf-8","gb2312", $htmlFileName);
+		$tmpFile = iconv("utf-8","gb2312//IGNORE", $htmlFileName);
 		//echo $tmpFile . "\n";
 		if(file_exists($tmpFile))
 		{
@@ -92,7 +92,7 @@ foreach($files as $file)//每个文件的
 		$mapContent = "$paperName\t$realUrl\n";
 		save($mapFile, $mapContent, "a+");
 		echo "[" . $icount++ . "] " ."Save file $htmlFileName\n";
-		fakeSleep();
+		fastSleep();
 	}
 }
 

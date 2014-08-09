@@ -185,7 +185,7 @@ foreach($files as $file)//每个文件的
 
 		if($sleep)
 		{
-			fakeSleep();
+			fastSleep();
 		}
 	}
 }

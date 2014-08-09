@@ -93,10 +93,16 @@ function save($file, $content, $mod="w+")
 	return;
 	
 	//echo "SAVE FILE $file\n";
-	$file = iconv("utf-8","gb2312", $file);
-	$fp = fopen("$file", $mod);
-	fwrite($fp, $content);
-	fclose($fp);
+	$file = iconv("utf-8","gb2312//IGNORE", $file);
+	$fp = fopen($file, $mod);
+	if($fp)
+	{
+		fwrite($fp, $content);
+		fclose($fp);
+	}
+	else{
+		save("./tmp", $file . "\n", "a+");
+	}
 }
 
 function changeArticlePerPage($indexURL, $count)
@@ -282,6 +288,12 @@ function fakeSleep()
 	echo "wake up now!\n";
 }
 
+function fastSleep()
+{
+	$ms = rand(0, 2);
+	sleep($ms);
+}
+
 function main($subDir, $class, $cookieURL, $indexURL, $totalClass, $curClass, $code) {
 
 	$isSleep = true;
@@ -451,7 +463,7 @@ function delFile($fileName)
 	}
 	else
 	{
-		echo "Delete file $fileName failure!";
+		echo "Delete file $fileName failure!\n";
 	}
 }
 
@@ -529,7 +541,8 @@ function win_dir_format($path)
 	$path = str_replace("\"", "_", $path);
 	$path = str_replace("*", "_", $path);
 	$path = str_replace("?", "_", $path);
-	
+	$path = str_replace(".", "_", $path);
+
 	$path = str_replace("/", "_", $path);
 	$path = str_replace("-","_", $path);
 	$path = str_replace("—","_", $path);
