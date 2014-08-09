@@ -2,8 +2,8 @@
 
 require_once 'HttpClient.class.php';
 
-define("MIN_SLEEP_USEC", 2);
-define("MAX_SLEEP_USEC", 4);
+define("MIN_SLEEP_USEC", 4);
+define("MAX_SLEEP_USEC", 7);
 define("ARTICLE_PRE_PAGE", 50);
 
 function readLine($fp)
@@ -546,5 +546,11 @@ function win_dir_format($path)
 	$path = str_replace("/", "_", $path);
 	$path = str_replace("-","_", $path);
 	$path = str_replace("—","_", $path);
+	if(strlen($path)>100)
+	{
+		$path = iconv("utf-8", "gb2312", $path);
+		$path = mb_substr($path, 0, 100);
+		$path = iconv("gb2312", "utf-8", $path);
+	}
 	return $path;
 }

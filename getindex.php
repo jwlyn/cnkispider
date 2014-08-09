@@ -83,8 +83,9 @@ foreach($files as $file)//每个文件的
 		$tableName = get_table_name($u);
 
 		$realUrl = get_real_url($dbCode, $fileName, $tableName);
-		$indexContent = file_get_contents($realUrl);
-
+		$indexContent = @file_get_contents($realUrl);
+		if(strlen($indexContent)==0)continue;
+		
 		$indexContent = resourceReplace($indexContent);
 
 		save($htmlFileName, $indexContent);
