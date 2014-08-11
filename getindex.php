@@ -93,7 +93,7 @@ foreach($files as $file)//每个文件的
 		$mapContent = "$paperName\t$realUrl\n";
 		save($mapFile, $mapContent, "a+");
 		echo "[" . $icount++ . "] " ."Save file $htmlFileName\n";
-		fastSleep();
+		//fastSleep();
 	}
 }
 

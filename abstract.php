@@ -114,7 +114,6 @@ foreach($files as $file)//每个文件的
 		$arr  = explode("\t", $line);
 		$u = $arr[6];
 		$paperName = $arr[0];
-		//$paperName = win_dir_format($paperName);
 
 		$code = $arr[7];
 		
@@ -122,10 +121,9 @@ foreach($files as $file)//每个文件的
 		$dbCode = get_db_code($u);//CDFD
 		$refUrl = get_ref($dbCode);
 
-
 		$cachedHtml = $dataSavePath . "/tmp/$paperName.html";
 		$absPath = $dataSavePath . "/" . $paperName . ".log";
-		echo "Cached check $cachedHtml...";
+		echo "Cache check $cachedHtml...";
 		$content = "";
 		$localedCachedHtml = iconv("utf-8", "gb2312", $cachedHtml);
 		if(!file_exists($localedCachedHtml))
@@ -171,10 +169,7 @@ foreach($files as $file)//每个文件的
 		{
 			$sleep = false;
 			echo "Hit\n";
-			//echo $localedCachedHtml . "\n";
 			$content = file_get_contents($localedCachedHtml);
-			// save("./tmp.txt", $content);
-			// echo $cachedHtml . "\n";
 		}
 		
 		$keyWords = get_key_words($content);
