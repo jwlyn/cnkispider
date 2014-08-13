@@ -1,4 +1,8 @@
 <?php
+/*
+ 便利左侧的目录，找出类别名称和对应的内部编号
+ 为遍历论文打下(变量)基础
+*/
 require_once "./lib/function.php";
 //require_once './lib/HttpClient.class.php';
 

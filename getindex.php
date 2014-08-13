@@ -1,4 +1,7 @@
 <?php 
+/**
+ * 获取论文的目录
+ */
 require_once "./lib/function.php";
 
 function resourceReplace($content)
@@ -95,6 +98,7 @@ foreach($files as $file)//每个文件的
 		echo "[" . $icount++ . "] " ."Save file $htmlFileName\n";
 		//fastSleep();
 	}
+	fclose($fp);
 }
 
 

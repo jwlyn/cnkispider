@@ -42,8 +42,14 @@ function get_paper_abs($content)
 {
 	$ptn = '/<span id="ChDivSummary" name="ChDivSummary">(.*?)<\/span>/';
 	$match = array();
-	preg_match($ptn, $content, $match);
-	return $match[1];
+	if(preg_match($ptn, $content, $match))
+	{
+		return $match[1];
+	}
+	else
+	{
+		return "NOT FOUND";
+	}
 }
 
 function get_mentor($content)
@@ -93,6 +99,7 @@ $files = get_all_log_file("./data/$key/");
 makeDir("./data/abstract/");//存放论文摘要,不会重复创建
 
 makeDir("./data/abstract/$key");//’A' , 'B'...
+$httpClient = new HttpClient("epub.cnki.net");
 
 foreach($files as $file)//每个文件的
 {
@@ -125,28 +132,37 @@ foreach($files as $file)//每个文件的
 		$absPath = $dataSavePath . "/" . $paperName . ".log";
 		echo "Cache check $cachedHtml...";
 		$content = "";
-		$localedCachedHtml = iconv("utf-8", "gb2312", $cachedHtml);
+		$localedCachedHtml = iconv("utf-8", "gb2312//IGNORE", $cachedHtml);
 		if(!file_exists($localedCachedHtml))
 		{
 			$sleep = true;
 			echo "Miss!\n";
 			$cookieURL = getCookieURL($code);
-			$httpClient = new HttpClient("epub.cnki.net");
+			
 			
 			/*获取并设置cookie*/
-			$httpClient->get($cookieURL);
+			
 			$cookies = $httpClient->getCookies();
-			while(!$cookies)
+			if(!$cookies)
+			do
 			{
-				$sc = 30;
-				echo "Cookie是空的，睡眠$sc S\n";
-				sleep($sc);
 				$httpClient->get($cookieURL);
 				$cookies = $httpClient->getCookies();
-			}
-			$httpClient->setCookies($cookies);
+				if(!$cookies)
+				{
+					$sc = 30;
+					echo "Cookie是空的，睡眠$sc S\n";
+					sleep($sc);
+				}
+				else
+				{
+					$httpClient->setCookies($cookies);
+				}
 
-			
+				// $httpClient->get($cookieURL);
+				// $cookies = $httpClient->getCookies();
+			}while(!$cookies);
+
 			$httpClient->setReferer($refUrl);
 			
 			$contentUrl = "http://epub.cnki.net" . $u;
@@ -178,11 +194,12 @@ foreach($files as $file)//每个文件的
 		
 		save("$absPath", $keyWords . "\n" . $abs);
 
-		if($sleep)
+		if($sleep && false)
 		{
 			fastSleep();
 		}
 	}
+	fclose($fp);
 }
 
 ?>
