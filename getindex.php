@@ -44,6 +44,7 @@ function resourceReplace($content)
 <?php
 
 $key = $argv[1];
+
 if(!$key)
 {
 	echo "usage \$php getindex.php 'A', 'B' ...\n";
@@ -74,18 +75,22 @@ foreach($files as $file)//每个文件的
 		//echo $paperName . "\n";
 		$htmlFileName = $indexSavePath . "/" . $paperName . ".html";
 		$tmpFile = iconv("utf-8","gb2312//IGNORE", $htmlFileName);
-		//echo $tmpFile . "\n";
-		if(file_exists($tmpFile))
-		{
-			echo "Cache hit! continue -> $htmlFileName\n";
-			continue;
-		}
-		
+
 		$dbCode = get_db_code($u);
 		$fileName = get_file_name($u);
 		$tableName = get_table_name($u);
 
 		$realUrl = get_real_url($dbCode, $fileName, $tableName);
+		
+		if(file_exists($tmpFile))
+		{
+			echo "Cache hit! continue -> $htmlFileName\n";
+			$mapContent = "$paperName\t$realUrl\n";
+			save($mapFile, $mapContent, "a+");
+			continue;
+		}
+		
+
 		$indexContent = @file_get_contents($realUrl);
 		if(strlen($indexContent)==0)continue;
 		

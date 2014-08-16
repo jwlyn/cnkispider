@@ -18,7 +18,7 @@ function parse_classpath_code($line)
 	$class = end($arr2);
 	$data['class'] = $class;
 	$data['parent_class'] = $arr2[count($arr2)-2];
-	
+	echo ".";
 	return $data;
 }
 function get_abstract_by_title($class, $classpath, $title)
@@ -26,9 +26,17 @@ function get_abstract_by_title($class, $classpath, $title)
 	$abstract = array();
 	
 	$path = "./data/abstract/$class/$classpath/"."$title.log";
-	echo __LINE__ ."$path\n";
-	$p1 = iconv("utf-8", "gb2312", $path);
-	$fp = fopen($p1, "r+");
+
+	$p1 = iconv("utf-8", "gb2312//IGNORE", $path);
+	if(!file_exists($p1))
+	{
+		save("logs/paper_not_found.txt", $path . "\n", "a+");
+		echo $path . " NOT FOUND\n";
+		return $abstract;
+	}
+	
+	$fp = @fopen($p1, "r+");
+
 	$i=0;
 	while($line=readLine($fp))
 	{
@@ -47,40 +55,67 @@ function get_abstract_by_title($class, $classpath, $title)
 			break;
 		}
 	}
-	
+	fclose($fp);
 	return $abstract;
 }
 
 function get_title_detail_map($class, $classpath)
 {
 	$path = "./data/abstract/$class/$classpath/paper_abstract_url.log";
-	$map = array();
-	$fp = fopen(iconv("utf-8", "gb2312", $path), "r+");
+	$tmp = iconv("utf-8", "gb2312//IGNORE", $path);
+	if(!file_exists($tmp))
+	{
+		echo $path . " NOT FOUND\n";
+		save("logs/abs_url_not_found.txt", $path . "\n", "a+");
+		return array();
+	}
 	
+	$map = array();
+	$fp = fopen(iconv("utf-8", "gb2312//IGNORE", $path), "r+");
+	if(!$fp)die("$path not found");
 	while($line=readLine($fp))
 	{
 		if(strlen($line)==0)continue;
 		
 		$arr = explode("\t", $line);
-		$map[$arr[0]] = $arr[1];
+		$abstract_real_url = "";
+		if(count($arr)==2)
+		{
+			$abstract_real_url = $arr[1];
+		}
+		$map[$arr[0]] = $abstract_real_url;
 	}
-	
+	fclose($fp);
 	return $map;
 }
 
 function get_index($class, $classpath, $title)
 {
 	$path = "./data/index/$class/$classpath/$title.html";
-	$content = file_get_contents(iconv("utf-8", "gb2312", $path));
+	$tpath = iconv("utf-8", "gb2312//IGNORE", $path);
+	if(!file_exists($tpath))
+	{
+		save("logs/paper_index_not_found.txt", $path . "\n", "a+");
+		return "";
+	}
+	$content = file_get_contents($tpath);
+	if(strlen(trim($content))==0)die("$path content is empty");
 	return $content;
 }
 
 function get_index_url_map($class, $classpath)
 {
 	$path = "./data/index/$class/$classpath/paper_url_mapping.log";
+	echo $path . "\n";
 	$map = array();
-	$fp = fopen(iconv("utf-8", "gb2312", $path), "r+");
-	
+	$tmp = iconv("utf-8", "gb2312//IGNORE", $path);
+	$fp = @fopen($tmp, "r+");
+	if(!$fp)
+	{
+		echo $path . " NOT FOUND\n";
+		save("logs/paper_index_url_not_found.txt", $path . "\n", "a+");
+		return $map;
+	}
 	while($line=readLine($fp))
 	{
 		if(strlen($line)==0)continue;
@@ -88,7 +123,7 @@ function get_index_url_map($class, $classpath)
 		$arr = explode("\t", $line);
 		$map[$arr[0]] = $arr[1];
 	}
-	
+	fclose($fp);
 	return $map;
 }
 
@@ -99,7 +134,18 @@ function get_docs_by_classpath($class, $classpath, $baseInfo)
 	$docs = array();
 	$path = "./data/".$class;
 	$file_list_of_class = $path . "/" . $classpath . ".log";
-	$fp = fopen(iconv("utf-8", "gb2312", $file_list_of_class), "r+");
+	
+	$tmp = iconv("utf-8", "gb2312//IGNORE", $file_list_of_class);
+	if(!file_exists($tmp))
+	{
+		echo $file_list_of_class . " NOT FOUND\n";
+		
+		save("logs/detail_not_found.txt", $path . "\n", "a+");
+		return $docs;
+	}
+	
+	$fp = fopen($tmp, "r+");
+	
 	while($line=readLine($fp))
 	{
 		if(strlen($line)==0)continue;
@@ -124,14 +170,27 @@ function get_docs_by_classpath($class, $classpath, $baseInfo)
 		$doc['index'] = get_index($class, $classpath, $title);
 		$doc['index_url'] = $index_url_map[$title];
 		$doc['ts'] = time();
+		
+		$docs[] = $doc;
 	}
-	
+	fclose($fp);
+	//exit;
 	return $docs;
 }
 
+define("STANDARD_LEN", 19);
 function save_2_mongo($docs)
 {
-	echo "save to mongodb ... Done\n";
+	$len = count($docs)==0 ? 0 : count($docs[0]);
+	if(count($docs)==0 || $len!=STANDARD_LEN)
+	{
+		echo "Empty Array\n";
+	}
+	else
+	{
+		echo "save to mongodb ... [$len]Done\n";
+	}
+	
 }
 ?>
 
@@ -146,13 +205,15 @@ if(!$key)
 	echo "Usage \$php job.php N(N is a number)";
 	exit;
 }
-
+@mkDir("logs");
 $classFolder = "./index/";
 $class = array("A", "B", "C", "D", "E", "F", "G", "H", "I", "J");
+$class = array("A");
 foreach($class as $c)
 {
+	echo "process $c\n";
 	$path = $classFolder . $c . "/" . get_class_file($c);//类 别入口
-	$fp = fopen(iconv("utf-8", "gb2312", $path), "r+");
+	$fp = fopen(iconv("utf-8", "gb2312//IGNORE", $path), "r+");
 	while($line=readLine($fp))
 	{
 		$docInfo = parse_classpath_code($line);//class, classpath, code
@@ -160,6 +221,8 @@ foreach($class as $c)
 		$docInfo2 = get_docs_by_classpath($c, $classpath, $docInfo);
 		save_2_mongo($docInfo2);
 	}
+	
+	fclose($fp);
 }
 
 

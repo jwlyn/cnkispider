@@ -81,7 +81,7 @@ function makeDir($dir, $mode = "0777") {
 	$dir = iconv("utf-8","gb2312", $dir);
 	if (!file_exists($dir)) {
 		echo $dir . "\n";
-		return mkdir($dir);
+		return @mkdir($dir);
 	} else {
 		return true;
 	}
