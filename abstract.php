@@ -130,7 +130,8 @@ foreach($files as $file)//每个文件的
 
 		$cachedHtml = $dataSavePath . "/tmp/$paperName.html";
 		$absPath = $dataSavePath . "/" . $paperName . ".log";
-		echo "Cache check $cachedHtml...";
+		//echo "Cache check $cachedHtml...";
+		echo iconv("utf-8", "gb2312", $cachedHtml) . " .... ";
 		$content = "";
 		$localedCachedHtml = iconv("utf-8", "gb2312//IGNORE", $cachedHtml);
 		if(!file_exists($localedCachedHtml))
@@ -167,25 +168,43 @@ foreach($files as $file)//每个文件的
 			
 			$contentUrl = "http://epub.cnki.net" . $u;
 
-			$httpClient->get($contentUrl);
-			$content = $httpClient->getContent();//302页面
+			$contentSize = 0;
 			
-			/*解析地址*/
-			$contentUrl = get_content_url($content);
-			$saveContent = $paperName . "\t" . $contentUrl . "\n";
-			save($mapFile, $saveContent, "a+");
-			//echo "save $saveContent\n";
-			
-			/*抓取论文摘要内容*/
-
-			$content = $httpClient->quickGet($contentUrl);
-			save($cachedHtml, $content);
+			do{
+				$httpClient->get($contentUrl);
+				$content = $httpClient->getContent();//302页面
+				
+				/*解析地址*/
+				$contentUrl = get_content_url($content);
+				echo $contentUrl . "\n";
+				$saveContent = $paperName . "\t" . $contentUrl . "\n";
+				save($mapFile, $saveContent, "a+");
+				//echo "save $saveContent\n";
+				
+				/*抓取论文摘要内容*/
+				$content = $httpClient->quickGet($contentUrl);
+				$contentSize = strlen($content);
+				if($contentSize>300)
+				{
+					save($cachedHtml, $content);
+				}
+				else{
+					fakeSleep();
+				}
+			}while($contentSize<300);
 		}
 		else
 		{
 			$sleep = false;
 			echo "Hit\n";
 			$content = file_get_contents($localedCachedHtml);
+			if(strlen($content)<300)
+			{
+				delFile($cachedHtml);
+				echo "Empty abstract file \n";
+			}
+			continue;
+			
 		}
 		
 		$keyWords = get_key_words($content);

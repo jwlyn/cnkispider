@@ -37,7 +37,7 @@ function getClass($fp)
 */
 function getCookieURL($code)
 {
-	$url = "http://epub.cnki.net/KNS/request/SearchHandler.ashx?action=&NaviCode=E065&ua=1.25&PageName=ASP.brief_result_aspx&DbPrefix=CDMD&DbCatalog=%E4%B8%AD%E5%9B%BD%E4%BC%98%E7%A7%80%E5%8D%9A%E7%A1%95%E5%A3%AB%E5%AD%A6%E4%BD%8D%E8%AE%BA%E6%96%87%E5%85%A8%E6%96%87%E6%95%B0%E6%8D%AE%E5%BA%93&ConfigFile=CDMD.xml&db_opt=%E4%B8%AD%E5%9B%BD%E4%BC%98%E7%A7%80%E5%8D%9A%E7%A1%95%E5%A3%AB%E5%AD%A6%E4%BD%8D%E8%AE%BA%E6%96%87%E5%85%A8%E6%96%87%E6%95%B0%E6%8D%AE%E5%BA%93&db_value=%E4%B8%AD%E5%9B%BD%E5%8D%9A%E5%A3%AB%E5%AD%A6%E4%BD%8D%E8%AE%BA%E6%96%87%E5%85%A8%E6%96%87%E6%95%B0%E6%8D%AE%E5%BA%93%2C%E4%B8%AD%E5%9B%BD%E4%BC%98%E7%A7%80%E7%A1%95%E5%A3%AB%E5%AD%A6%E4%BD%8D%E8%AE%BA%E6%96%87%E5%85%A8%E6%96%87%E6%95%B0%E6%8D%AE%E5%BA%93&his=0&__=Sun%20Aug%2010%202014%2010%3A56%3A27%20GMT%2B0800%20(%E4%B8%AD%E5%9B%BD%E6%A0%87%E5%87%86%E6%97%B6%E9%97%B4)";
+	$url = "http://epub.cnki.net/KNS/request/SearchHandler.ashx?action=&NaviCode=I&ua=1.25&PageName=ASP.brief_result_aspx&DbPrefix=CDMD&DbCatalog=%E4%B8%AD%E5%9B%BD%E4%BC%98%E7%A7%80%E5%8D%9A%E7%A1%95%E5%A3%AB%E5%AD%A6%E4%BD%8D%E8%AE%BA%E6%96%87%E5%85%A8%E6%96%87%E6%95%B0%E6%8D%AE%E5%BA%93&ConfigFile=CDMD.xml&db_opt=%E4%B8%AD%E5%9B%BD%E4%BC%98%E7%A7%80%E5%8D%9A%E7%A1%95%E5%A3%AB%E5%AD%A6%E4%BD%8D%E8%AE%BA%E6%96%87%E5%85%A8%E6%96%87%E6%95%B0%E6%8D%AE%E5%BA%93&db_value=%E4%B8%AD%E5%9B%BD%E5%8D%9A%E5%A3%AB%E5%AD%A6%E4%BD%8D%E8%AE%BA%E6%96%87%E5%85%A8%E6%96%87%E6%95%B0%E6%8D%AE%E5%BA%93%2C%E4%B8%AD%E5%9B%BD%E4%BC%98%E7%A7%80%E7%A1%95%E5%A3%AB%E5%AD%A6%E4%BD%8D%E8%AE%BA%E6%96%87%E5%85%A8%E6%96%87%E6%95%B0%E6%8D%AE%E5%BA%93&his=0&__=Wed%20Oct%2008%202014%2009%3A34%3A39%20GMT%2B0800%20(%E4%B8%AD%E5%9B%BD%E6%A0%87%E5%87%86%E6%97%B6%E9%97%B4)";
 	
 	if(!$code || strlen(trim($code))!=0)
 	    $url = preg_replace("/NaviCode=(.*?)&/", "NaviCode=$code&", $url);
@@ -77,7 +77,7 @@ function saveFile($fileName, $text) {
 function makeDir($dir, $mode = "0777") {
 	if (!$dir)
 	return false;
-	echo __FILE__ . __LINE__ . $dir . "\n";
+	
 	$dir = iconv("utf-8","gb2312", $dir);
 	if (!file_exists($dir)) {
 		echo $dir . "\n";
@@ -515,7 +515,6 @@ function get_all_log_file($path)
 	//列出 images 目录中的文件
 	while (($file = readdir($dir)) !== false)
 	{
-		
 		if(is_file($path . $file))
 		{
 			$files[] = $path . $file;

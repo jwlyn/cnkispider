@@ -1,5 +1,6 @@
 <?php 
 require_once "./lib/function.php";
+require_once "./lib/indexformat.php";
 
 function get_class_file($class)
 {
@@ -21,6 +22,20 @@ function parse_classpath_code($line)
 	echo ".";
 	return $data;
 }
+
+function trim_keyword($keyword)
+{
+	$arr = explode("；", $keyword);
+	$str = "";
+	foreach($arr as $k=>$val)
+	{
+		$val = trim($val);
+		if(strlen($val)!=0)
+			$str .= $val . ",";
+	}
+	return substr($str, 0, strlen($str)-1);
+}
+
 function get_abstract_by_title($class, $classpath, $title)
 {
 	$abstract = array();
@@ -31,7 +46,7 @@ function get_abstract_by_title($class, $classpath, $title)
 	if(!file_exists($p1))
 	{
 		save("logs/paper_not_found.txt", $path . "\n", "a+");
-		echo $path . " NOT FOUND\n";
+		echo $p1 . " NOT FOUND\n";
 		return $abstract;
 	}
 	
@@ -45,7 +60,7 @@ function get_abstract_by_title($class, $classpath, $title)
 			$i=1;
 			$arr = explode("#", $line);
 			
-			$abstract['keyword'] = $arr[0];
+			$abstract['keyword'] = trim_keyword($arr[0]);
 			$abstract['mentor'] = $arr[1];
 			$abstract['major'] = $arr[2];
 		}
@@ -65,7 +80,7 @@ function get_title_detail_map($class, $classpath)
 	$tmp = iconv("utf-8", "gb2312//IGNORE", $path);
 	if(!file_exists($tmp))
 	{
-		echo $path . " NOT FOUND\n";
+		echo $tmp . " NOT FOUND\n";
 		save("logs/abs_url_not_found.txt", $path . "\n", "a+");
 		return array();
 	}
@@ -91,7 +106,7 @@ function get_title_detail_map($class, $classpath)
 
 function get_index($class, $classpath, $title)
 {
-	$path = "./data/index/$class/$classpath/$title.html";
+	$path = "./data/index/FIndex/$class/$classpath/$title.html";
 	$tpath = iconv("utf-8", "gb2312//IGNORE", $path);
 	if(!file_exists($tpath))
 	{
@@ -99,20 +114,20 @@ function get_index($class, $classpath, $title)
 		return "";
 	}
 	$content = file_get_contents($tpath);
-	if(strlen(trim($content))==0)die("$path content is empty");
+	
 	return $content;
 }
 
 function get_index_url_map($class, $classpath)
 {
 	$path = "./data/index/$class/$classpath/paper_url_mapping.log";
-	echo $path . "\n";
+	echo iconv("utf-8", "gb2312//IGNORE", $path) . "\n";
 	$map = array();
 	$tmp = iconv("utf-8", "gb2312//IGNORE", $path);
 	$fp = @fopen($tmp, "r+");
 	if(!$fp)
 	{
-		echo $path . " NOT FOUND\n";
+		echo $tmp . " NOT FOUND\n";
 		save("logs/paper_index_url_not_found.txt", $path . "\n", "a+");
 		return $map;
 	}
@@ -160,15 +175,17 @@ function get_docs_by_classpath($class, $classpath, $baseInfo)
 		$doc['year'] = $arr[4];
 		$doc['read_url'] = $arr[5];
 		$doc['abstract_302_url'] = $arr[6];
-		$doc['code'] = $arr[7];
+		$c = $doc['code'] = $arr[7];
+		$doc['status'] = 0;
+		$doc['_id'] = md5($c.$title);
 		
-		$doc['abstract_url'] = $title_detail_url_map[$title];
+		$doc['abstract_url'] = @$title_detail_url_map[$title];
 		
 		$doc = array_merge($doc, get_abstract_by_title($class, $classpath, $title));
 		
 		//$doc = array_merge($doc, get_index($class, $classpath, $title));
 		$doc['index'] = get_index($class, $classpath, $title);
-		$doc['index_url'] = $index_url_map[$title];
+		$doc['index_url'] = isset($index_url_map[$title]) ? $index_url_map[$title] : "";
 		$doc['ts'] = time();
 		
 		$docs[] = $doc;
@@ -178,17 +195,63 @@ function get_docs_by_classpath($class, $classpath, $baseInfo)
 	return $docs;
 }
 
-define("STANDARD_LEN", 19);
+define("STANDARD_LEN", 21);
 function save_2_mongo($docs)
 {
 	$len = count($docs)==0 ? 0 : count($docs[0]);
-	if(count($docs)==0 || $len!=STANDARD_LEN)
+	if(count($docs)==0)
 	{
 		echo "Empty Array\n";
 	}
+	else if($len!=STANDARD_LEN)
+	{
+		echo "Element not enough\n";
+	}
 	else
 	{
-		echo "save to mongodb ... [$len]Done\n";
+		$docLen = count($docs);
+		try{
+			$mongo = new Mongo("192.168.0.159"); //create a connection to MongoDB
+			$db=$mongo->mydb; //选择mydb数据库
+			$collection=$db->shuobo; //选择集合(选择’表’)
+			
+			$mongoDoc = array();
+			for($i=0; $i<$docLen; $i++)//每50个插入一次，防止doc过大
+			{
+				$mongoDoc[] = $docs[$i];
+				if(($i+1)%50==0)
+				{
+				  $ok = false;
+				  try{
+					$ok = $collection->batchInsert($mongoDoc);
+				   }catch(Exception $e) 
+				   {
+					//var_dump($e);
+					echo "batchInsert Error \n";
+					 save("./non-utf-8.log", var_export($mongoDoc, true), "a+");
+				   }
+					if(!$ok)
+					{
+						echo "Mongodb Insert Error\n";
+					}
+					$mongoDoc = array();
+					echo ".";
+				}
+				
+			}
+			if(count($mongoDoc)!=0)
+			{
+				$collection->batchInsert($mongoDoc);
+			}
+			
+			$mongo->close();
+			echo "save to mongodb ... [$docLen]Done\n";
+		}
+		catch(MongoConnectionException $e) 
+		{
+			#die($e->getMessage());
+			echo $e;
+		}
 	}
 	
 }
@@ -202,13 +265,13 @@ function save_2_mongo($docs)
 $key = @$argv[1];
 if(!$key)
 {
-	echo "Usage \$php job.php N(N is a number)";
+	echo "Usage \$php job.php N(N is A/B/C..J)";
 	exit;
 }
 @mkDir("logs");
 $classFolder = "./index/";
 $class = array("A", "B", "C", "D", "E", "F", "G", "H", "I", "J");
-$class = array("A");
+$class = array("$key");
 foreach($class as $c)
 {
 	echo "process $c\n";

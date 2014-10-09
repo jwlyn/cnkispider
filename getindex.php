@@ -84,15 +84,26 @@ foreach($files as $file)//每个文件的
 		
 		if(file_exists($tmpFile))
 		{
-			echo "Cache hit! continue -> $htmlFileName\n";
-			$mapContent = "$paperName\t$realUrl\n";
-			save($mapFile, $mapContent, "a+");
-			continue;
+			if(filesize($tmpFile)<100)
+			{
+				delFile($htmlFileName);
+			}
+			else
+			{
+				echo "Cache hit! continue -> $htmlFileName\n";
+				$mapContent = "$paperName\t$realUrl\n";
+				save($mapFile, $mapContent, "a+");
+				continue;
+			}
 		}
 		
 
 		$indexContent = @file_get_contents($realUrl);
-		if(strlen($indexContent)==0)continue;
+		if(strlen($indexContent)==0)
+		{
+			die("$realUrl"); 
+			continue;
+		}
 		
 		$indexContent = resourceReplace($indexContent);
 
